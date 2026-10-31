@@ -1,0 +1,335 @@
+.page {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: var(--space-4);
+}
+
+.card,
+.result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 880px;
+  padding: var(--space-5, 24px);
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.result {
+  max-width: 1100px;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-xl, 1.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.prompt {
+  width: 100%;
+  resize: vertical;
+  padding: var(--space-3);
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-bg-subtle, #f8fafc);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.prompt:focus,
+.field input:focus,
+.field select:focus {
+  outline: 2px solid #99c229;
+  outline-offset: 1px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.wide {
+  display: flex;
+  flex: 1 1 200px;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: 600;
+  color: var(--color-text-muted, #64748b);
+}
+
+.wide select,
+.wide input {
+  height: 38px;
+  padding: 0 10px;
+  font: inherit;
+  color: var(--color-text);
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.sizeBox {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: 600;
+  color: var(--color-text-muted, #64748b);
+}
+
+.field input,
+.field select {
+  height: 38px;
+  width: 96px;
+  padding: 0 10px;
+  font: inherit;
+  color: var(--color-text);
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.logoBox {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.logoChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: var(--text-sm, 0.875rem);
+}
+
+.logoChip img {
+  display: block;
+  height: 40px;
+  width: auto;
+  max-width: 120px;
+  object-fit: contain;
+}
+
+.logoBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* A checkerboard behind the logo, so its transparency (the removed background) is visible. */
+.checker {
+  display: inline-flex;
+  background-color: #fff;
+  background-image: linear-gradient(45deg, #d8dde3 25%, transparent 25%, transparent 75%, #d8dde3 75%), linear-gradient(45deg, #d8dde3 25%, transparent 25%, transparent 75%, #d8dde3 75%);
+  background-position: 0 0, 6px 6px;
+  background-size: 12px 12px;
+  border-radius: 4px;
+}
+
+.logoNote {
+  max-width: 320px;
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--color-text-muted, #64748b);
+}
+
+.logoChip button {
+  display: inline-flex;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: inherit;
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.preset,
+.presetOn {
+  height: 30px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--color-text);
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.presetOn {
+  border-color: #99c229;
+  background: #f4f9e4;
+  font-weight: 700;
+}
+
+.primary,
+.secondary,
+.ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 18px;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.primary {
+  align-self: flex-start;
+  color: #fff;
+  background: #99c229;
+  border: 1px solid #99c229;
+}
+
+.secondary {
+  color: var(--color-text);
+  background: #fff;
+  border: 1px solid var(--color-border);
+}
+
+.ghost {
+  color: var(--color-text-muted, #64748b);
+  background: none;
+  border: 1px solid transparent;
+}
+
+.primary:disabled,
+.secondary:disabled,
+.ghost:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-text);
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-text-muted, #64748b);
+}
+
+.bar {
+  height: 6px;
+  overflow: hidden;
+  background: var(--color-bg-subtle, #eef2f7);
+  border-radius: 999px;
+}
+
+.bar > div {
+  height: 100%;
+  background: #99c229;
+  transition: width 0.4s ease;
+}
+
+.picture {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-text-muted, #64748b);
+}
+
+.error {
+  margin: 0;
+  font-size: var(--text-sm, 0.875rem);
+  color: #b91c1c;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Style reference: a finished label the client likes */
+.refBox {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.refChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border, #e2e5df);
+  border-radius: var(--radius-lg, 14px);
+  background: var(--color-surface, #fff);
+}
+
+.refChip button {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.refThumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.refHint {
+  flex: 1 1 260px;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm, 0.875rem);
+}

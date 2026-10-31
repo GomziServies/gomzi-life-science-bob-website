@@ -1,0 +1,212 @@
+.grid,
+.columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding-top: 10px;
+}
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.card {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--ed-border);
+  border-radius: 10px;
+  background: var(--ed-surface-2);
+  cursor: pointer;
+  transition:
+    border-color var(--ed-dur) var(--ed-ease),
+    transform var(--ed-dur) var(--ed-ease),
+    box-shadow var(--ed-dur) var(--ed-ease);
+}
+.card:hover {
+  border-color: var(--ed-accent);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+.card:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.card[aria-busy='true'] {
+  opacity: 0.6;
+  cursor: progress;
+}
+.thumb {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+.blank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  color: var(--ed-text-dim);
+  font: 500 11px / 1.3 var(--font-sans);
+  text-align: center;
+}
+.pages {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--color-overlay);
+  color: var(--color-on-brand);
+  font: 600 10px / 1.5 var(--font-sans);
+}
+.title {
+  display: block;
+  margin: 5px 2px 0;
+  overflow: hidden;
+  color: var(--ed-text-dim);
+  font: 500 11px / 1.3 var(--font-sans);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.item {
+  min-width: 0;
+}
+.skel {
+  border-radius: 10px;
+}
+
+.importBox {
+  margin: 10px 0 6px;
+  padding: 12px 10px;
+  border: 1.5px dashed var(--ed-border);
+  border-radius: 10px;
+  background: var(--ed-surface-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: border-color var(--ed-dur) var(--ed-ease), background var(--ed-dur) var(--ed-ease), transform var(--ed-dur) var(--ed-ease);
+  text-align: center;
+  width: 100%;
+}
+
+.importBox:hover:not(:disabled) {
+  border-color: var(--ed-accent);
+  background: color-mix(in srgb, var(--ed-accent) 8%, var(--ed-surface-2));
+  transform: translateY(-1px);
+}
+
+.importBox:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.importIcon {
+  color: var(--ed-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.importTitle {
+  font: 600 12px / 1.3 var(--font-sans);
+  color: var(--ed-text);
+}
+
+.importSubtitle {
+  font: 400 10.5px / 1.3 var(--font-sans);
+  color: var(--ed-text-dim);
+}
+
+.badgeList {
+  display: flex;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.badge {
+  font: 700 9px / 1 var(--font-sans);
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--ed-accent) 18%, transparent);
+  color: var(--ed-accent);
+  letter-spacing: 0.5px;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.importOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.importOption small {
+  display: block;
+  opacity: 0.7;
+  font-size: 11px;
+}
+
+/* One collapsed dropdown for the import tools, so the template grid is not pushed below the fold */
+.tools {
+  margin: 8px 0 10px;
+  border: 1px solid var(--ed-border);
+  border-radius: 10px;
+  background: var(--ed-surface-2);
+}
+
+.toolsSummary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.toolsSummary::-webkit-details-marker {
+  display: none;
+}
+
+.toolsSummary span {
+  flex: 1;
+}
+
+.toolsChevron {
+  transition: transform var(--ed-dur) var(--ed-ease);
+  opacity: 0.7;
+}
+
+.tools[open] > .toolsSummary .toolsChevron {
+  transform: rotate(180deg);
+}
+
+.toolsBody {
+  padding: 0 12px 12px;
+  border-top: 1px solid var(--ed-border);
+}

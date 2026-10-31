@@ -1,0 +1,282 @@
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: var(--space-2) var(--space-4) var(--space-16);
+  text-align: center;
+}
+
+/* Modern FG Group Hero emblem stage */
+.stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: auto;
+  margin: var(--space-4) auto var(--space-2);
+}
+
+.bunny {
+  position: relative;
+  z-index: 1;
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 28px rgba(153, 194, 41, 0.25));
+  transition: transform var(--duration-base) var(--ease-out);
+  cursor: pointer;
+  user-select: none;
+}
+
+.bunny:hover {
+  transform: translateY(-4px) scale(1.05);
+}
+
+.ground {
+  display: none;
+}
+
+.bubble {
+  display: none;
+}
+
+.hearts {
+  display: none;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: rotate(-3deg) translateY(0);
+  }
+
+  50% {
+    transform: rotate(0deg) translateY(-12px);
+  }
+}
+
+@keyframes squish {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scaleX(0.82);
+    opacity: 0.7;
+  }
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+
+  25% {
+    transform: rotate(-7deg);
+  }
+
+  75% {
+    transform: rotate(7deg);
+  }
+}
+
+.title {
+  margin-top: var(--space-6);
+  font-size: clamp(2.4rem, 6vw, 4.25rem);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.accent {
+  position: relative;
+  z-index: 0;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.accent svg {
+  position: absolute;
+  z-index: -1;
+  left: -3%;
+  bottom: -0.6rem;
+  width: 106%;
+  height: 1.1rem;
+  fill: none;
+  stroke: var(--color-brand);
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+
+.lead {
+  max-width: 32rem;
+  margin-top: var(--space-5);
+  color: var(--color-text-muted);
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+/* Create a design */
+.create {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-12);
+}
+
+.note {
+  position: absolute;
+  top: -1.4rem;
+  left: calc(50% + 10rem);
+  width: 9.5rem;
+  color: var(--color-brand);
+  font-family: var(--font-hand);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.05;
+  text-align: left;
+  transform: rotate(-4deg);
+}
+
+.note svg {
+  display: block;
+  width: 3.75rem;
+  height: 2.75rem;
+  margin: 0.25rem 0 0 -0.6rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.perks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2) var(--space-5);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.perks li::before {
+  content: '✓ ';
+  color: var(--color-brand);
+  font-weight: 800;
+}
+
+/* Or start with a size */
+.sizes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-10);
+}
+
+.sizesLabel {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 2.25rem;
+  padding: 0 var(--space-4);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.chip:hover {
+  text-decoration: none;
+  border-color: var(--color-brand);
+  box-shadow: 0 4px 12px rgba(153, 194, 41, 0.2);
+  transform: translateY(-2px);
+}
+
+.chips li:nth-child(odd) .chip:hover {
+  transform: translateY(-2px);
+}
+
+.customChip {
+  height: 2.25rem;
+  color: var(--color-brand-strong);
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .bubble {
+    right: -7.5rem;
+  }
+
+  .note {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .stage {
+    height: 17rem;
+  }
+
+  .bunny {
+    height: 15.3rem;
+  }
+
+  .ground {
+    width: 8rem;
+  }
+
+  .hearts {
+    display: none;
+  }
+
+  .bubble {
+    top: 0.6rem;
+    right: -3.4rem;
+    padding: 0.45rem 0.85rem 0.6rem;
+    font-size: 1.35rem;
+  }
+
+  .create {
+    margin-top: var(--space-12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bunny,
+  .bunny:hover,
+  .ground {
+    animation: none;
+  }
+}

@@ -1,0 +1,58 @@
+// Product list from the Gomzi Life Science blueprint (stock list, Aug 2026).
+export type GroupId = 'protein' | 'sports' | 'well';
+
+export interface Product {
+  id: string;
+  /** Gallery category holding this product's saved templates; empty shows every template. */
+  templateCategory: string;
+  /** The product's label size, width x height (shown on the card and in its details). */
+  labelSize?: string;
+  /** Ingredient details supplied as an image, shown in the product's details instead of the standard note. */
+  detailImage?: string;
+  group: GroupId;
+  name: string;
+  /** Kept in the data but not shown on the website. */
+  hidden?: boolean;
+  sub: string;
+  unit: 'kg' | 'jar' | 'bottle';
+  flavours: string[];
+  tag: string;
+  weight?: string;
+}
+
+const P3 = ['Chocolate', 'Mawa Kulfi', 'Coffee'];
+// Whey Protein's flavours: the first three are in stock today (see STOCK); the rest are the flavours of the company's own label library.
+const WHEY_FLAVOURS = ['Chocolate', 'Mawa Kulfi', 'Coffee', 'Belgian Chocolate', 'Cappuccino', 'Vanilla', 'Cookies & Cream', 'Salted Caramel', 'Banana', 'Strawberry', 'Mango', 'Mint Chocolate'];
+
+export const CATALOG: Product[] = [
+  { id: 'wp57', templateCategory: 'whey-protein', group: 'protein', name: 'Whey Protein', sub: '', unit: 'kg', flavours: WHEY_FLAVOURS, tag: 'PROTEIN POWDER' },
+  { id: 'wp40', templateCategory: 'whey-protein', group: 'protein', hidden: true, name: 'Whey Protein 40%', sub: '40% protein', unit: 'kg', flavours: P3, tag: '40% PROTEIN' },
+  { id: 'wp30', templateCategory: 'whey-protein', group: 'protein', hidden: true, name: 'Whey Protein 30%', sub: '30% protein', unit: 'kg', flavours: P3, tag: '30% PROTEIN' },
+  { id: 'wpe', templateCategory: 'whey-protein', group: 'protein', name: 'Whey Protein Blend', sub: 'Economy range', unit: 'kg', flavours: P3, tag: 'DAILY PROTEIN' },
+  { id: 'yeast', templateCategory: 'whey-protein', group: 'protein', name: 'Yeast Protein', sub: 'Vegan protein', unit: 'kg', flavours: ['Coffee'], tag: 'VEGAN PROTEIN' },
+  { id: 'plant', templateCategory: 'whey-protein', group: 'protein', name: 'Plant Protein', sub: 'Vegan protein', unit: 'kg', flavours: ['Chocolate'], tag: 'PLANT BASED' },
+  { id: 'cre', templateCategory: 'creatine', group: 'sports', name: 'Creatine Monohydrate', sub: 'Unflavoured · 250 g jar', unit: 'jar', flavours: ['Unflavoured'], tag: 'MONOHYDRATE', weight: '250 G' },
+  { id: 'crel', templateCategory: 'creatine', group: 'sports', name: 'Creatine Monohydrate', sub: 'Lemon · 250 g jar', unit: 'jar', flavours: ['Lemon'], tag: 'MONOHYDRATE', weight: '250 G' },
+  { id: 'bcaa', templateCategory: 'bcaa-amino', group: 'sports', name: 'BCAA 2:1:1', sub: 'Tangy Orange · 250 g jar', unit: 'jar', flavours: ['Tangy Orange'], tag: '2:1:1 RECOVERY', weight: '250 G' },
+  { id: 'pre', templateCategory: 'pre-workout', group: 'sports', name: 'Pre-Workout', sub: 'Fruit Punch · 250 g jar', unit: 'jar', flavours: ['Fruit Punch'], tag: 'ENERGY & FOCUS', weight: '250 G' },
+  { id: 'biotin', templateCategory: '', group: 'well', name: 'Biotin', sub: '60 capsules', unit: 'bottle', flavours: ['Standard'], tag: 'DIETARY SUPPLEMENT', weight: '60 CAPSULES' },
+  { id: 'd3k2', templateCategory: '', group: 'well', name: 'Vitamin D3 + K2', sub: '60 tablets', unit: 'bottle', flavours: ['Standard'], tag: 'DIETARY SUPPLEMENT', weight: '60 TABLETS' },
+  { id: 'multi', templateCategory: '', group: 'well', name: 'Multivitamin', sub: '60 tablets', unit: 'bottle', flavours: ['Standard'], tag: 'DIETARY SUPPLEMENT', weight: '60 TABLETS' },
+  { id: 'calc', templateCategory: '', group: 'well', name: 'Calcium', sub: '60 tablets', unit: 'bottle', flavours: ['Standard'], tag: 'DIETARY SUPPLEMENT', weight: '60 TABLETS' },
+  { id: 'omega', templateCategory: '', group: 'well', name: 'Omega-3 1000 mg', sub: '60 softgels', unit: 'bottle', flavours: ['Standard'], tag: '1000 MG SOFTGELS', weight: '60 SOFTGELS' },
+  { id: 'pcos', templateCategory: '', group: 'well', name: 'PCOS Support', sub: '60 tablets', unit: 'bottle', flavours: ['Standard'], tag: 'DIETARY SUPPLEMENT', weight: '60 TABLETS' },
+  { id: 'liver', templateCategory: '', group: 'well', name: 'Liver Health', sub: '60 tablets', unit: 'bottle', flavours: ['Standard'], tag: 'DIETARY SUPPLEMENT', weight: '60 TABLETS' },
+  { id: 'vitc', templateCategory: '', labelSize: '7 in × 7 cm', detailImage: '/products/vitamin-c-ingredients.png', group: 'well', name: 'Vitamin C', sub: '60 chewable tablets', unit: 'bottle', flavours: ['Standard'], tag: 'DIETARY SUPPLEMENT', weight: '60 CHEWABLES' },
+  { id: 'gummies', templateCategory: '', group: 'well', name: 'Gummies', sub: '60 gummies', unit: 'bottle', flavours: ['Mixed Fruit', 'Orange', 'Strawberry'], tag: 'CHEWABLE GUMMIES', weight: '60 GUMMIES' },
+  { id: 'drops', templateCategory: '', group: 'well', name: 'Drops', sub: '30 ml dropper bottle', unit: 'bottle', flavours: ['Unflavoured'], tag: 'LIQUID DROPS', weight: '30 ML' },
+];
+
+export const GROUPS: Record<GroupId, { title: string; note: string }> = {
+  protein: { title: 'Protein powders', note: '500 g, 1 kg or 2 kg jars' },
+  sports: { title: 'Sports supplements', note: '250 g jars' },
+  well: { title: 'Wellness range', note: 'Bottles of 60' },
+};
+
+export const MIN_QTY = 50;
+
+export const productById = (id: string) => CATALOG.find((p) => p.id === id);
