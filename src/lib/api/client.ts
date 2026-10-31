@@ -25,13 +25,21 @@ const CREDENTIALS: RequestCredentials = SAME_ORIGIN_API ? 'include' : 'omit'
 const MEDIA_BASE = ((import.meta.env.VITE_EDITOR_MEDIA as string | undefined) ?? '').replace(/\/+$/, '')
 
 /**
+ * Entries cached by the CDN or the browser before media sent CORS headers keep failing, and a
+ * browser caches the CORS failure itself. The server ignores the query, so a fixed token makes
+ * those reads miss the poisoned entries once while staying cacheable afterwards. Bump to re-flush.
+ */
+const MEDIA_CACHE_VERSION = '2'
+
+/**
  * Documents store image sources as same-origin paths (`/media/studio/layers/x.png`). When the
  * media host differs from the page, point them at it; otherwise the browser resolves them against
  * the page's own origin and loads whatever that returns.
  */
 export function resolveMediaUrl(src: string): string {
   if (!MEDIA_BASE || !src.startsWith('/media/')) return src
-  return MEDIA_BASE + src.slice('/media'.length)
+  const url = MEDIA_BASE + src.slice('/media'.length)
+  return `${url}${url.includes('?') ? '&' : '?'}v=${MEDIA_CACHE_VERSION}`
 }
 
 export type QueryValue = string | number | boolean | null | undefined
