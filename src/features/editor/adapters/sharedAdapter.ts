@@ -1,4 +1,4 @@
-import { assetsApi, commentsApi, isApiError, shareApi } from '@/lib/api'
+import { assetsApi, commentsApi, isApiError, resolveMediaUrl, shareApi } from '@/lib/api'
 import type { AccountReason, EditorAdapter } from '@/types/adapter'
 import type { FontFamily, ShareRole } from '@/types/api'
 import { ReadOnlyDesignError, RevisionConflictError } from './errors'
@@ -57,7 +57,7 @@ export function createSharedAdapter(options: SharedAdapterOptions): EditorAdapte
       if (!canEdit) throw new ReadOnlyDesignError()
       return assetToRef(await assetsApi.upload(file, { name: opts?.name }))
     },
-    resolveSrc: async (src) => src,
+    resolveSrc: async (src) => resolveMediaUrl(src),
     services: {
       ...publicServices,
       fonts: { ...publicServices.fonts, provided: options.fonts ?? [] },

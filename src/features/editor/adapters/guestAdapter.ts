@@ -1,3 +1,4 @@
+import { resolveMediaUrl } from '@/lib/api'
 import { localRepository, type LocalRepository } from '@/lib/local'
 import type { AccountReason, AssetRef, EditorAdapter, SaveInput } from '@/types/adapter'
 import type { Asset } from '@/types/api'
@@ -95,7 +96,7 @@ export function createGuestAdapter(options: GuestAdapterOptions): EditorAdapter 
     },
     async resolveSrc(src) {
       const match = LOCAL_SRC.exec(src)
-      if (!match) return src
+      if (!match) return resolveMediaUrl(src)
       const url = await repo.getAssetObjectUrl(match[1])
       if (!url) throw new Error('This image is no longer stored in this browser.')
       return url

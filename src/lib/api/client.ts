@@ -21,6 +21,19 @@ const SAME_ORIGIN_API = ((): boolean => {
 
 const CREDENTIALS: RequestCredentials = SAME_ORIGIN_API ? 'include' : 'omit'
 
+/** Where `/media/…` files are served from, without a trailing slash (empty when same-origin). */
+const MEDIA_BASE = ((import.meta.env.VITE_EDITOR_MEDIA as string | undefined) ?? '').replace(/\/+$/, '')
+
+/**
+ * Documents store image sources as same-origin paths (`/media/studio/layers/x.png`). When the
+ * media host differs from the page, point them at it; otherwise the browser resolves them against
+ * the page's own origin and loads whatever that returns.
+ */
+export function resolveMediaUrl(src: string): string {
+  if (!MEDIA_BASE || !src.startsWith('/media/')) return src
+  return MEDIA_BASE + src.slice('/media'.length)
+}
+
 export type QueryValue = string | number | boolean | null | undefined
 
 export interface ApiErrorInit {

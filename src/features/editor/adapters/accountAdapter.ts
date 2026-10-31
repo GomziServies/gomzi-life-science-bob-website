@@ -1,4 +1,4 @@
-import { assetsApi, designsApi, exportsApi, isApiError } from '@/lib/api'
+import { assetsApi, designsApi, exportsApi, isApiError, resolveMediaUrl } from '@/lib/api'
 import type { AppConfig } from '@/types/api'
 import type { EditorAdapter } from '@/types/adapter'
 import { RevisionConflictError } from './errors'
@@ -66,7 +66,7 @@ export function createAccountAdapter(designId: string, getRevision: () => number
     async uploadAsset(file, opts) {
       return assetToRef(await assetsApi.upload(file, { name: opts?.name }))
     },
-    resolveSrc: async (src) => src,
+    resolveSrc: async (src) => resolveMediaUrl(src),
     services: createAccountServices(designId, () => flushLiveRoom(realtime)),
     realtime,
   }
