@@ -166,6 +166,14 @@ const mediaUrl = (url: string) => {
   const u = new URL(url, 'http://x');
   return u.hostname === AWS_FILES_HOST ? AWS_FILES + u.pathname : EDITOR_MEDIA + u.pathname.replace(/^\/media/, '');
 };
+
+/**
+ * The jar draws the banner onto a canvas and uses it as a 3D texture, so the picture must come from
+ * a host that sends CORS headers — a tainted canvas cannot be a WebGL texture. The file CDN sends
+ * none, while the API serves the same preview with them, so read it from there. The `.webp` copy
+ * also sidesteps the hotlink rule that answers 403 to cross-site requests for PNG and JPEG.
+ */
+const bannerImageUrl = (slug: string) => `${EDITOR_MEDIA}/templates/previews/${encodeURIComponent(slug)}.webp`;
 /** Where the brand logo sat on a template's label, as shares of the picture (`x`, `y`, `w`, `h`), or null when the template has none. */
 export interface LogoSlot {
   x: number;
@@ -201,7 +209,7 @@ export function listGalleryBanners(category: string): Promise<GalleryBanner[]> {
         const rows = Array.isArray(body) ? body : (body.results ?? []);
         return rows
           .filter((t) => t.thumbnail_url && t.width && t.height && t.width / t.height >= 2.2 && t.width / t.height <= 4.6)
-          .map((t) => ({ slug: t.slug, title: t.title, image: mediaUrl((t.preview_url ?? t.thumbnail_url)!), thumb: mediaUrl(t.thumbnail_url!), width: t.width!, height: t.height! }));
+          .map((t) => ({ slug: t.slug, title: t.title, image: bannerImageUrl(t.slug), thumb: mediaUrl(t.thumbnail_url!), width: t.width!, height: t.height! }));
       });
     hit.catch(() => bannerCache.delete(category));
     bannerCache.set(category, hit);
