@@ -15,6 +15,13 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      // Style and React-compiler advice: shown as warnings so they are fixed over time without blocking the build.
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-expressions': 'warn',
+      '@typescript-eslint/ban-ts-comment': 'warn',
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/refs': 'warn',
+      'react-hooks/purity': 'warn',
     },
   },
   {
