@@ -5,4 +5,3 @@ dist-*
 .vite
 .env
 .env.*
-!.env.example
