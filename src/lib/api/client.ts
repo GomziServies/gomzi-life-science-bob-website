@@ -42,6 +42,33 @@ export function resolveMediaUrl(src: string): string {
   return `${url}${url.includes('?') ? '&' : '?'}v=${MEDIA_CACHE_VERSION}`
 }
 
+const mediaObjectUrls = new Map<string, Promise<string>>()
+
+/**
+ * The media host sits behind hotlink protection, which answers 403 to an image request carrying a
+ * cross-site Referer — and a 403 has no CORS headers, so the browser reports it as a CORS failure.
+ * The same request without a Referer succeeds with full CORS, so fetch it that way and hand back a
+ * blob URL. Being same-origin, it also keeps the canvas untainted for export.
+ *
+ * Falls back to the plain URL, which still works wherever hotlink protection is off.
+ */
+export async function resolveMediaSrc(src: string): Promise<string> {
+  const url = resolveMediaUrl(src)
+  if (url === src || !/^https?:\/\//.test(url)) return url
+  let hit = mediaObjectUrls.get(url)
+  if (!hit) {
+    hit = fetch(url, { referrerPolicy: 'no-referrer', mode: 'cors', credentials: 'omit' })
+      .then((response) => {
+        if (!response.ok) throw new Error(`Media request failed (${response.status})`)
+        return response.blob()
+      })
+      .then((blob) => URL.createObjectURL(blob))
+    hit.catch(() => mediaObjectUrls.delete(url))
+    mediaObjectUrls.set(url, hit)
+  }
+  return hit.catch(() => url)
+}
+
 export type QueryValue = string | number | boolean | null | undefined
 
 export interface ApiErrorInit {
