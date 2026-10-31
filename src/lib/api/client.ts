@@ -2,7 +2,7 @@
  * The single HTTP seam of the app: same-origin JSON over fetch with session cookies and CSRF.
  * Every failure surfaces as an `ApiError` so UI code never inspects raw Responses.
  */
-export const API_BASE = '/api/v1'
+export const API_BASE = (import.meta.env.VITE_EDITOR_API as string | undefined) ?? '/api/v1'
 
 export type QueryValue = string | number | boolean | null | undefined
 
