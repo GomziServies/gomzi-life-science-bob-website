@@ -4,6 +4,23 @@
  */
 export const API_BASE = (import.meta.env.VITE_EDITOR_API as string | undefined) ?? '/api/v1'
 
+/**
+ * Cookies only reach a same-origin API: the session cookie is SameSite=Lax, so the browser
+ * withholds it cross-site anyway, and a credentialed request is rejected outright unless the
+ * API echoes the exact origin back. Omitting credentials cross-origin loses nothing and keeps
+ * public reads working against a wildcard CORS policy.
+ */
+const SAME_ORIGIN_API = ((): boolean => {
+  if (typeof window === 'undefined') return true
+  try {
+    return new URL(API_BASE, window.location.href).origin === window.location.origin
+  } catch {
+    return true
+  }
+})()
+
+const CREDENTIALS: RequestCredentials = SAME_ORIGIN_API ? 'include' : 'omit'
+
 export type QueryValue = string | number | boolean | null | undefined
 
 export interface ApiErrorInit {
@@ -120,7 +137,7 @@ let csrfRequest: Promise<void> | null = null
 /** Fetches the CSRF cookie once when it is missing (or when `force` is set). */
 export async function ensureCsrf(force = false): Promise<void> {
   if (!force && readCookie('csrftoken')) return
-  csrfRequest ??= fetch(`${API_BASE}/auth/csrf/`, { credentials: 'include' })
+  csrfRequest ??= fetch(`${API_BASE}/auth/csrf/`, { credentials: CREDENTIALS })
     .then(() => undefined)
     .catch(() => {
       throw new ApiError({ status: 0, code: 'network_error', message: NETWORK_MESSAGE })
@@ -135,7 +152,7 @@ function xhrFetch(url: string, init: { method: Method; headers: Headers; body: F
   return new Promise<Response>((resolve, reject) => {
     const xhr = new XMLHttpRequest()
     xhr.open(init.method, url)
-    xhr.withCredentials = true
+    xhr.withCredentials = SAME_ORIGIN_API
     xhr.responseType = 'arraybuffer'
     init.headers.forEach((value, key) => xhr.setRequestHeader(key, value))
     xhr.upload.onprogress = (event) => {
@@ -207,7 +224,7 @@ async function send(method: Method, path: string, options: RequestOptions, retri
     if (options.onUploadProgress && options.form) {
       response = await xhrFetch(url, { method, headers, body: options.form, signal: options.signal }, options.onUploadProgress)
     } else {
-      response = await fetch(url, { method, headers, body, credentials: 'include', signal: options.signal })
+      response = await fetch(url, { method, headers, body, credentials: CREDENTIALS, signal: options.signal })
     }
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') throw error
