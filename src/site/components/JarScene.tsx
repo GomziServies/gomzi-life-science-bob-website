@@ -33,6 +33,27 @@ const SHAPE = {
 /** A jar is shown at its real size next to the others: nothing is drawn smaller than this height (mm) in the frame, so a protein tub looks big and a bottle looks small. */
 const FRAME_MM = 150;
 
+/**
+ * The bottom of a tub, like the real black jar: a wide, softly rounded base corner, and the wall narrowing a little towards the foot
+ * instead of ending in a hard edge. From the centre of the base out to the wall at height `top`.
+ */
+function tubBase(wallR: number, corner: number, inset: number, top: number): THREE.Vector2[] {
+  const pts: THREE.Vector2[] = [new THREE.Vector2(0, 0)];
+  const rc = wallR - inset - corner;
+  pts.push(new THREE.Vector2(rc, 0));
+  for (let i = 1; i <= 12; i++) {
+    const a = (i / 12) * (Math.PI / 2);
+    pts.push(new THREE.Vector2(rc + corner * Math.sin(a), corner - corner * Math.cos(a)));
+  }
+  // the wall eases out from the rounded corner up to its full width
+  for (let i = 1; i <= 8; i++) {
+    const t = i / 8;
+    const k = t * t * (3 - 2 * t);
+    pts.push(new THREE.Vector2(wallR - inset + inset * k, corner + (top - corner) * t));
+  }
+  return pts;
+}
+
 /** One face of a bag (a stand-up pouch or a sachet): a sheet that puffs out in the middle and is flat along its heat-sealed top and bottom. */
 function bagGeometry(w: number, h: number, depth: number, side: 1 | -1, pouch = false) {
   const nx = 48;
@@ -236,7 +257,7 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
       const [w0, w1] = TUB.wall;
       const wallLen = w1 - w0;
       const mapY = (y: number) => (y <= w0 ? y : y >= w1 ? y + (labelH - wallLen) : w0 + ((y - w0) * labelH) / wallLen);
-      const tp = TUB.body.map(([r, y]) => new THREE.Vector2(r, mapY(y)));
+      const tp = [...tubBase(TUB.wallR, 0.24, 0.05, TUB.wall[0]), ...TUB.body.slice(25).map(([r, y]) => new THREE.Vector2(r, mapY(y)))];
       tp.push(new THREE.Vector2(0, mapY(TUB.lid.y0)));
       group.add(new THREE.Mesh(new THREE.LatheGeometry(tp, 160), body));
       // the lid, in the design's colour, with a rounded top edge
