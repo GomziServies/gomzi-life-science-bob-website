@@ -104,9 +104,7 @@ const loadSmallJar = () => (smallJarModel ??= new GLTFLoader().loadAsync(SMALL_J
 }));
 
 /** Loads every 3D model now, so the first card that needs one does not wait for it. */
-export const preloadModels = () => {
-  for (const load of [loadJar, loadPouch, loadSachet, loadSmallJar]) load().catch(() => undefined);
-};
+export const preloadModels = (): Promise<unknown> => Promise.all([loadJar, loadPouch, loadSachet, loadSmallJar].map((load) => load().catch(() => undefined)));
 
 /**
  * The bottom of a tablet bottle, like the real black bottle: a wide, softly rounded base corner, and the wall narrowing a little towards the

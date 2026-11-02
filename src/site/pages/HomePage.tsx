@@ -8,6 +8,8 @@ import { WHATSAPP } from '../lib/config';
 import { defaultQty } from '../lib/rules';
 import { tintOf } from '../components/ProductJar';
 import { Card3D } from '../components/Card3D';
+import { Loading3d } from '../components/Loading3d';
+import { startPreload } from '../lib/preload3d';
 import { ProductModal } from '../components/ProductModal';
 import type { LogoShift } from '../components/LabelView';
 import { Seals } from '../components/Seals';
@@ -46,6 +48,11 @@ export function HomePage() {
     setLogoState(l);
     storeLogo(l);
   };
+
+  // every 3D model starts loading as the page opens; the page is shown when they are all in
+  useEffect(() => {
+    startPreload(CATALOG.filter((p) => !p.hidden).length);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setPastHero(window.scrollY > 560);
@@ -95,6 +102,7 @@ export function HomePage() {
 
   return (
     <>
+      <Loading3d />
       <section className="hero">
         <div className="wrap hero-grid">
           <div>
@@ -158,13 +166,13 @@ export function HomePage() {
               )}
               {tab !== 'all' && <p className="muted">{GROUPS[tab].note}</p>}
               <div className="grid">
-                {cards(tab).map((p) => {
+                {cards(tab).map((p, i) => {
                   const line = lineOf(p.id);
                   const flavour = line?.flavour ?? picked[p.id] ?? p.flavours[0];
                   return (
                     <article className={`pcard${line ? ' picked' : ''}`} key={p.id}>
                       <div className="pcard-art" style={{ ['--tint' as string]: tintOf(p.id) }}>
-                        <Card3D product={p} flavour={flavour} details={labelDetails} banner={applied} />
+                        <Card3D product={p} flavour={flavour} details={labelDetails} banner={applied} index={i} />
                         {line && <span className="picked-badge">Added</span>}
                         {p.comingSoon && <span className="soon-badge">Coming soon</span>}
                         <button type="button" className="eye" aria-label={`View ${p.name} details and all flavours`} title="View details" onClick={() => setDetail(p)}>
