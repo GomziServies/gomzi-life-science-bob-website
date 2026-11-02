@@ -180,7 +180,32 @@ function sachetSvg(p: Product, flavour: string, brand: string, id: string, banne
   return s + '</svg>';
 }
 
+/** A dropper bottle (the 30 ml drops): a glass-style bottle with a metal collar and a rubber dropper bulb on top. */
+function dropperSvg(p: Product, flavour: string, brand: string, id: string, banner?: string): string {
+  const { c } = lookOf(p.id);
+  const bx = 66;
+  const bw = 108;
+  const by = 122;
+  const bh = 164;
+  const L = { X: bx, Y: 150, W: bw, H: 112 };
+  const body = `M${bx + 26} ${by}H${bx + bw - 26}Q${bx + bw} ${by} ${bx + bw} ${by + 26}V${by + bh - 24}Q${bx + bw} ${by + bh} ${bx + bw - 24} ${by + bh}H${bx + 24}Q${bx} ${by + bh} ${bx} ${by + bh - 24}V${by + 26}Q${bx} ${by} ${bx + 26} ${by}Z`;
+  let s = `<svg viewBox="0 0 240 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(p.name)} dropper bottle">`;
+  s += `<defs><clipPath id="${id}c"><path d="${body}"/></clipPath><linearGradient id="${id}g" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".3"/><stop offset=".16" stop-color="#fff" stop-opacity=".08"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset=".8" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".32"/></linearGradient><linearGradient id="${id}b" x1="0" x2="1"><stop offset="0" stop-color="#2a2a2a"/><stop offset=".3" stop-color="#5a5a5a"/><stop offset=".55" stop-color="#1a1a1a"/><stop offset="1" stop-color="#050505"/></linearGradient></defs>`;
+  s += `<ellipse cx="120" cy="${by + bh + 4}" rx="${bw * 0.46}" ry="6" fill="#000" opacity=".2"/>`;
+  // the rubber bulb and the collar it sits in
+  s += `<path d="M104 90V50Q104 18 120 18Q136 18 136 50V90Z" fill="url(#${id}b)"/><path d="M110 28Q112 22 118 22" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none" opacity=".4"/>`;
+  s += `<rect x="94" y="86" width="52" height="40" rx="6" fill="#0D0D0D"/>`;
+  for (let i = 1; i < 6; i++) s += `<rect x="97" y="${86 + i * 6.4}" width="46" height="1.2" fill="#fff" opacity=".1"/>`;
+  s += `<rect x="94" y="84" width="52" height="5" rx="2.5" fill="${c.P}"/>`;
+  // the bottle
+  s += `<path d="${body}" fill="#151515"/><g clip-path="url(#${id}c)">`;
+  s += banner ? `<image href="${esc(banner)}" x="${L.X}" y="${L.Y}" width="${L.W}" height="${L.H}" preserveAspectRatio="xMidYMid slice"/>` : label(p, flavour, brand, L, id);
+  s += `</g><path d="${body}" fill="url(#${id}g)"/></svg>`;
+  return s;
+}
+
 export function jarSvg(p: Product, flavour: string, brand: string, id: string, banner?: string): string {
+  if (p.id === 'drops') return dropperSvg(p, flavour, brand, id, banner);
   if (p.unit === 'sachet') return sachetSvg(p, flavour, brand, id, banner);
   const sh = SHAPES[p.unit === 'kg' ? 'tub' : p.unit === 'jar' ? 'small' : 'bottle'];
   const { c } = lookOf(p.id);
