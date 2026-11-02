@@ -34,24 +34,41 @@ const SHAPE = {
 const FRAME_MM = 150;
 
 /** One face of a bag (a stand-up pouch or a sachet): a sheet that puffs out in the middle and is flat along its heat-sealed top and bottom. */
-function bagGeometry(w: number, h: number, depth: number, side: 1 | -1) {
-  const nx = 40;
-  const ny = 64;
+function bagGeometry(w: number, h: number, depth: number, side: 1 | -1, pouch = false) {
+  const nx = 48;
+  const ny = 96;
   const pos: number[] = [];
   const uv: number[] = [];
   const col: number[] = [];
   const idx: number[] = [];
   const smooth = (t: number) => t * t * (3 - 2 * t);
+  const sealTop = pouch ? 0.07 : 0.1;
   for (let j = 0; j <= ny; j++) {
     const v = j / ny;
-    const belly = smooth(Math.min(1, Math.min(v / 0.14, (1 - v) / 0.14)));
+    let halfW: number;
+    let belly: number;
+    if (pouch) {
+      // a stand-up pouch seen from the side is a wedge: thin at the sealed top, growing steadily thicker down to a full, flat base
+      const top = 1 - sealTop;
+      const t = Math.min(1, v / top); // 0 at the base, 1 at the top seal
+      halfW = 0.5 * w * (1 - 0.07 * t);
+      const foot = 0.93 + 0.07 * smooth(Math.min(1, v / 0.05));
+      belly = foot * (1 - 0.6 * Math.pow(t, 1.4)) * Math.max(0, Math.min(1, (top - v) / 0.04));
+    } else {
+      halfW = 0.5 * w;
+      belly = smooth(Math.min(1, Math.min(v / 0.14, (1 - v) / 0.14))) * (0.8 + 0.2 * Math.sin(Math.PI * v));
+    }
     for (let i = 0; i <= nx; i++) {
       const u = i / nx;
-      const edge = Math.pow(Math.max(0, 1 - Math.pow(2 * u - 1, 2)), 0.55);
-      pos.push((u - 0.5) * w, v * h, side * depth * edge * belly * (0.8 + 0.2 * Math.sin(Math.PI * v)));
+      const c = 2 * u - 1;
+      // pouch: a flat front that turns sharply into the side wall (a boxy section); sachet: a soft pillow
+      const n = 2.5 + 5.5 * (1 - Math.min(1, v / (1 - sealTop))); // boxy low down, folding in to a lens (the side gusset crease) higher up
+      const edge = pouch ? Math.pow(Math.max(0, 1 - Math.pow(Math.abs(c), n)), 1 / n) : Math.pow(Math.max(0, 1 - Math.pow(c, 2)), 0.55);
+      const z = depth * edge * belly;
+      pos.push(c * halfW, v * h, side * z);
       uv.push(side === 1 ? u : 1 - u, v);
       // darker towards the sides and the seals, so the bag reads as puffed out
-      const shade = 0.55 + 0.45 * Math.pow(edge, 0.7) * (0.55 + 0.45 * belly);
+      const shade = pouch ? 0.5 + 0.5 * Math.pow(edge, 0.6) : 0.55 + 0.45 * Math.pow(edge, 0.7) * (0.55 + 0.45 * Math.min(1, belly * 1.2));
       col.push(shade, shade, shade);
     }
   }
@@ -131,28 +148,14 @@ function bagFaces(wrap: HTMLCanvasElement, panels: [number, number, number], asp
     const k = Math.min(rw / stripW, rh / wrap.height);
     const dw = stripW * k;
     const dh = wrap.height * k;
-    const edge = (y: number) => {
-      const d = sctx.getImageData(0, y, stripW, 2).data;
-      let r = 0;
-      let g = 0;
-      let b = 0;
-      const n = d.length / 4;
-      for (let q = 0; q < d.length; q += 4) {
-        r += d[q];
-        g += d[q + 1];
-        b += d[q + 2];
-      }
-      return `rgb(${Math.round(r / n)},${Math.round(g / n)},${Math.round(b / n)})`;
-    };
     const dy = top + (rh - dh) / 2;
-    ctx.fillStyle = edge(0);
-    ctx.fillRect(0, 0, W, dy);
-    ctx.fillStyle = edge(wrap.height - 2);
-    ctx.fillRect(0, dy + dh, W, H - dy - dh);
-    ctx.fillStyle = edge(Math.round(wrap.height / 2));
-    ctx.fillRect(0, dy, rx + (rw - dw) / 2, dh);
-    ctx.fillRect(rx + (rw + dw) / 2, dy, W - rx - (rw + dw) / 2, dh);
-    ctx.drawImage(strip, 0, 0, stripW, wrap.height, rx + (rw - dw) / 2, dy, dw, dh);
+    const dx = rx + (rw - dw) / 2;
+    // beyond the design, its own edge pixels are stretched outwards, so colours and gradients run on over the sides, top and bottom
+    ctx.drawImage(strip, 0, 0, stripW, 1, 0, 0, W, dy);
+    ctx.drawImage(strip, 0, wrap.height - 1, stripW, 1, 0, dy + dh, W, H - dy - dh);
+    ctx.drawImage(strip, 0, 0, 1, wrap.height, 0, dy, dx, dh);
+    ctx.drawImage(strip, stripW - 1, 0, 1, wrap.height, dx + dw, dy, W - dx - dw, dh);
+    ctx.drawImage(strip, 0, 0, stripW, wrap.height, dx, dy, dw, dh);
     seals(ctx);
     return c;
   };
@@ -224,8 +227,8 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
       const face = () => new THREE.MeshPhysicalMaterial({ roughness: 0.45, clearcoat: 0.15, clearcoatRoughness: 0.5, color: 0xffffff, vertexColors: true });
       const front = face();
       const back = face();
-      group.add(new THREE.Mesh(bagGeometry(bw, bh, pouch ? 0.9 : 0.22, 1), front));
-      group.add(new THREE.Mesh(bagGeometry(bw, bh, pouch ? 0.9 : 0.22, -1), back));
+      group.add(new THREE.Mesh(bagGeometry(bw, bh, pouch ? 1.2 : 0.22, 1, pouch), front));
+      group.add(new THREE.Mesh(bagGeometry(bw, bh, pouch ? 1.2 : 0.22, -1, pouch), back));
       bag = { front, back, aspect: bw / bh };
       total = bh + 0.06;
     } else if (isTub) {
