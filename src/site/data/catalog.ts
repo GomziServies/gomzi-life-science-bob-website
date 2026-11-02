@@ -25,7 +25,7 @@ const P3 = ['Chocolate', 'Mawa Kulfi', 'Coffee'];
 // The six flavours the brochure lists for every protein powder (Yeast Protein also has Buttermilk).
 const POWDER_FLAVOURS = ['Mawa Kulfi', 'Chocolate', 'Cookies & Cream', 'Coffee', 'Belgian Chocolate', 'Brownie Chocolate'];
 // The peanut butters of the brochure (smooth, crunchy and high-protein).
-const PEANUT_FLAVOURS = ['Natural Peanut Butter (Smooth/Crunch)', 'Chocolate Peanut Butter (Smooth/Crunch)', 'Classic Peanut Butter (Smooth/Crunch)', 'Elaichi Peanut Butter (Smooth/Crunch)', 'White Chocolate Crispy High Protein', 'Chocolate Crispy Peanut Butter', 'White Chocolate Crispy', 'Jaggery High Protein', 'Mango Chia Seeds', 'Chocolate Crispy High Protein', 'America Classic Peanut Butter (Smooth/Crunch)'];
+const PEANUT_FLAVOURS = ['Natural (Smooth/Crunch)', 'Chocolate (Smooth/Crunch)', 'Classic (Smooth/Crunch)', 'Elaichi (Smooth/Crunch)', 'America Classic (Smooth/Crunch)', 'White Chocolate Crispy', 'White Chocolate Crispy (High Protein)', 'Chocolate Crispy', 'Chocolate Crispy (High Protein)', 'Jaggery (High Protein)', 'Mango Chia Seeds'];
 const WHEY_FLAVOURS = ['Chocolate', 'Mawa Kulfi', 'Coffee', 'Belgian Chocolate', 'Cappuccino', 'Vanilla', 'Cookies & Cream', 'Salted Caramel', 'Banana', 'Strawberry', 'Mango', 'Mint Chocolate'];
 
 export const CATALOG: Product[] = [
@@ -39,15 +39,14 @@ export const CATALOG: Product[] = [
   { id: 'wpe', templateCategory: 'whey-protein', group: 'protein', name: 'Whey Protein Blend', sub: 'Economy range', unit: 'kg', flavours: P3, tag: 'DAILY PROTEIN' },
   { id: 'yeast', templateCategory: 'whey-protein', group: 'protein', name: 'Yeast Protein', sub: 'Vegan protein', unit: 'kg', flavours: [...POWDER_FLAVOURS, 'Buttermilk'], tag: 'VEGAN PROTEIN' },
   { id: 'plant', templateCategory: 'whey-protein', group: 'protein', name: 'Plant Protein', sub: 'Vegan protein', unit: 'kg', flavours: POWDER_FLAVOURS, tag: 'PLANT BASED' },
-  { id: 'cre', templateCategory: 'creatine', group: 'sports', name: 'Creatine Monohydrate', sub: 'Unflavoured · 250 g jar', unit: 'jar', flavours: ['Unflavoured'], tag: 'MONOHYDRATE', weight: '250 G' },
-  { id: 'crel', templateCategory: 'creatine', group: 'sports', name: 'Creatine Monohydrate', sub: 'Lemon · 250 g jar', unit: 'jar', flavours: ['Lemon'], tag: 'MONOHYDRATE', weight: '250 G' },
+  { id: 'cre', templateCategory: 'creatine', group: 'sports', name: 'Creatine Monohydrate', sub: 'Unflavoured or Lemon · 250 g jar', unit: 'jar', flavours: ['Unflavoured', 'Lemon'], tag: 'MONOHYDRATE', weight: '250 G' },
   { id: 'bcaa', templateCategory: 'bcaa-amino', group: 'sports', name: 'BCAA 2:1:1', sub: 'Tangy Orange · 250 g jar', unit: 'jar', flavours: ['Tangy Orange'], tag: '2:1:1 RECOVERY', weight: '250 G' },
   { id: 'pre', templateCategory: 'pre-workout', group: 'sports', name: 'Pre-Workout', sub: 'Fruit Punch · 250 g jar', unit: 'jar', flavours: ['Fruit Punch', 'Mix Fruit'], tag: 'ENERGY & FOCUS', weight: '250 G' },
   { id: 'eaa', templateCategory: 'bcaa-amino', group: 'sports', name: 'EAA', sub: 'Orange · 250 g jar', unit: 'jar', flavours: ['Orange'], tag: 'GAIN · RECOVER · REFUEL', weight: '250 G' },
   { id: 'fatburner', templateCategory: 'pre-workout', group: 'sports', name: 'Fat Burner', sub: 'Blueberry · 250 g jar', unit: 'jar', flavours: ['Blueberry'], tag: 'L-CARNITINE FORMULA', weight: '250 G' },
-  { id: 'peanut', templateCategory: '', group: 'food', name: 'Peanut Butter', sub: 'Smooth, crunchy & high-protein', unit: 'jar', flavours: PEANUT_FLAVOURS, tag: 'PEANUT BUTTER' },
-  { id: 'tea', templateCategory: '', group: 'food', name: 'Instant Protein Spiced Milk Tea', sub: 'Zero added sugar · 14 g sachet', unit: 'sachet', flavours: ['Masala Chai'], tag: 'INSTANT PROTEIN TEA', weight: '14 G' },
-  { id: 'mocha', templateCategory: '', group: 'food', name: 'Instant Protein Mocha Coffee', sub: 'Zero added sugar · 14 g sachet', unit: 'sachet', flavours: ['Mocha'], tag: 'INSTANT PROTEIN COFFEE', weight: '14 G' },
+  { id: 'peanut', templateCategory: '', group: 'food', name: 'Peanut Butter', sub: 'Smooth, crunchy & high-protein · jar', unit: 'jar', flavours: PEANUT_FLAVOURS, tag: 'PEANUT BUTTER' },
+  { id: 'tea', templateCategory: '', group: 'food', name: 'Instant Protein Spiced Milk Tea', sub: 'Zero added sugar · 14 g sachet', unit: 'sachet', flavours: ['Masala Chai'], tag: 'PROTEIN TEA', weight: '14 G' },
+  { id: 'mocha', templateCategory: '', group: 'food', name: 'Instant Protein Mocha Coffee', sub: 'Zero added sugar · 14 g sachet', unit: 'sachet', flavours: ['Mocha'], tag: 'PROTEIN COFFEE', weight: '14 G' },
   { id: 'biotin', templateCategory: '', group: 'well', name: 'Biotin', sub: '60 capsules', unit: 'bottle', flavours: ['Standard'], tag: 'DIETARY SUPPLEMENT', weight: '60 CAPSULES' },
   { id: 'd3k2', templateCategory: '', group: 'well', name: 'Vitamin D3 + K2', sub: '60 tablets', unit: 'bottle', flavours: ['Standard'], tag: 'DIETARY SUPPLEMENT', weight: '60 TABLETS' },
   { id: 'multi', templateCategory: '', group: 'well', name: 'Multivitamin', sub: '60 tablets', unit: 'bottle', flavours: ['Standard'], tag: 'DIETARY SUPPLEMENT', weight: '60 TABLETS' },

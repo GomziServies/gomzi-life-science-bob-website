@@ -3,7 +3,7 @@ import { lookOf } from './ProductJar';
 import { lum } from '../data/labelTemplates';
 import { PANELS, jarKind, labelMm, renderCanvas, wrapSvg, type LabelSpec } from '../lib/labelArt';
 import { getLogoSlot, type GalleryBanner, type LogoSlot } from '../lib/api';
-import type { Pack } from './LabelParts';
+import { fitPack, type Pack } from './LabelParts';
 
 const JarScene = lazy(() => import('./JarScene'));
 
@@ -215,7 +215,7 @@ export function LabelView({ spec, mode, px = 2600, className, banner, pack = 'ja
         </div>
       }
     >
-      <JarScene className={className} autoTurn={autoTurn} wrap={banner ? (placed ?? real?.canvas ?? null) : drawn} mm={mm} kind={pack === 'jar' ? jarKind(spec.product) : pack} jarColor={jarColor} accent={banner ? undefined : c.P} panels={PANELS} onUnsupported={() => setBroken(true)} />
+      <JarScene className={className} autoTurn={autoTurn} wrap={banner ? (placed ?? real?.canvas ?? null) : drawn} mm={mm} kind={fitPack(spec.product, pack) === 'jar' ? jarKind(spec.product) : fitPack(spec.product, pack)} jarColor={jarColor} accent={banner ? undefined : c.P} panels={PANELS} onUnsupported={() => setBroken(true)} />
     </Suspense>
   );
 }

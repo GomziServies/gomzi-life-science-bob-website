@@ -28,9 +28,7 @@ export const STOCK: Record<string, Record<string, number>> = {
     "Chocolate": 100
   },
   "cre": {
-    "Unflavoured": 500
-  },
-  "crel": {
+    "Unflavoured": 500,
     "Lemon": 500
   },
   "bcaa": {
@@ -137,4 +135,82 @@ export const COMPANY = {
   phone: '+91 83200 77993',
   tel: '+918320077993',
   site: 'gomzilifesciences.in',
+};
+
+/** What the brochure says about a product, shown in its details: a line about it, key facts, and bullet lists. */
+export interface BrochureInfo {
+  about: string;
+  facts?: [string, string][];
+  lists?: [string, string[]][];
+}
+
+const WHEY_ROWS = ['Protein', 'Lactose', 'Fat', 'Absorption', 'Cost', 'Best for', 'Used in'];
+const whey = (about: string, v: string[]): BrochureInfo => ({ about, facts: WHEY_ROWS.map((k, i): [string, string] => [k, v[i]]) });
+
+export const BROCHURE: Record<string, BrochureInfo> = {
+  wpi: whey('Whey protein isolate: the purest whey, 90% protein.', ['Very high', 'Very low', 'Very low', 'Fast', 'Premium', 'Lean muscle & recovery', 'Premium protein powders']),
+  wpc: whey('Whey protein concentrate, 80% protein.', ['High', 'Moderate', 'Low', 'Medium to fast', 'Mid-range', 'Muscle building', 'Fitness supplements']),
+  wp60: whey('Whey protein at 60%: the economical choice for daily protein.', ['Moderate', 'Low to moderate', 'Moderate', 'Medium to fast', 'Economical', 'Daily protein intake', 'Protein blends']),
+  wpe: whey('Whey protein blend for everyday fitness.', ['High', 'Moderate', 'Moderate', 'Medium', 'Mid-range', 'General fitness', 'Protein powders']),
+  gainer: { about: 'A mass gainer with a recovery blend of BCAA 2:1:1 for muscle size and recovery.' },
+  plant: { about: 'A vegan, plant-based protein with a protein-rich blend.' },
+  yeast: { about: 'A vegan yeast protein, also available in Buttermilk.' },
+  pre: {
+    about: 'Boosts energy, focus, endurance and workout intensity before training. Used by gym users, athletes and nutrition brands.',
+    lists: [
+      ['Formulation levels', ['Basic: for beginners', 'Standard: for regular users', 'Advanced: for athletes']],
+      ['Custom options', ['Fat Burner', 'High Stim', 'Pump & Endurance', 'Athlete Performance']],
+      ['Common ingredients', ['Caffeine', 'Beta-Alanine', 'Citrulline Malate', 'Taurine', 'Creatine Monohydrate', 'L-Arginine', 'Electrolytes']],
+    ],
+  },
+  cre: {
+    about: 'Creatine supports strength, performance and power output. Used by gym users, bodybuilders and athletes. Flavours: Unflavoured and Lemon.',
+    lists: [
+      ['Product options', ['Creatine Monohydrate', 'Micronized Creatine', 'Creatine Blends']],
+      ['Custom options', ['With Electrolytes', 'With Amino Acids', 'Performance Blends']],
+      ['Common ingredients', ['Creatine Monohydrate', 'Creatine HCL', 'Electrolytes', 'Amino Acids']],
+    ],
+  },
+  bcaa: {
+    about: 'BCAA supports muscle recovery, endurance and workout performance.',
+    lists: [
+      ['Product options', ['BCAA 2:1:1', 'BCAA 4:1:1', 'BCAA 8:1:1']],
+      ['Custom options', ['With Electrolytes', 'With Glutamine', 'Intra-Workout Hydration']],
+    ],
+  },
+  eaa: {
+    about: 'EAA provides essential amino acids for better recovery and endurance.',
+    lists: [
+      ['Product options', ['Standard EAA Formula', 'Advanced Athlete EAA']],
+      ['Custom options', ['With Electrolytes', 'Recovery Blends', 'Endurance Amino Blends']],
+    ],
+  },
+  fatburner: {
+    about: 'A premium metabolic formula with L-Carnitine, botanicals and fibre supporting fat oxidation, sustained energy and appetite control.',
+    lists: [
+      ['Performance claims', ['Low-stimulant / jitter-free', 'Prebiotic gut support', 'Supports fat metabolism', 'Aids active weight management', 'Supports healthy blood sugar balance', 'Promotes sustained energy']],
+      ['Nutrition claims', ['Zero added sugar', 'High fibre', 'Zero fat', 'Low sodium', 'Low calorie', 'Keto-friendly']],
+      ['Vitamins, minerals & flavour', ['100% daily value of key vitamins (2 servings)', 'Source of antioxidants', 'Flavoured with real orange juice powder', 'Comprehensive botanical blend']],
+    ],
+  },
+  peanut: {
+    about: 'High-quality peanut butter with customised flavours, smooth and crunchy textures, and high-protein options.',
+  },
+  tea: {
+    about: 'Authentic masala chai with a creamy blend of tea extract, milk solids and aromatic spices. Just add hot water.',
+    lists: [
+      ['Key features', ['Authentic masala chai flavour', 'Zero added sugar', 'Dairy protein', 'Quick & convenient']],
+      ['Preparation', ['Measure', 'Add hot water', 'Stir & enjoy']],
+      ['Perfect for', ['Morning tea routines', 'Office and workplace beverages', 'Travel and on-the-go', 'Everyday tea preparation']],
+      ['Storage', ['Store in a cool, dry place away from moisture and strong odours. Keep the sachet tightly sealed.']],
+    ],
+  },
+  mocha: {
+    about: 'Rich coffee, smooth cocoa and a creamy mocha premix, hot or iced.',
+    lists: [
+      ['Key features', ['Rich mocha flavour: coffee and cocoa', 'Zero added sugar, sweetened with sucralose', 'Dairy protein: 4.4 g per serving', 'Smooth & creamy texture', 'Hot or iced']],
+      ['Perfect for', ['Morning coffee routines', 'Afternoon coffee breaks', 'Hot and iced beverage lovers', 'Fitness and calorie-conscious lifestyles']],
+      ['Storage', ['Store in a cool, dry place away from direct sunlight, heat and moisture. Keep the pouch tightly sealed after each use.']],
+    ],
+  },
 };

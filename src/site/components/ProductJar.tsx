@@ -13,7 +13,7 @@ const SHAPES: Record<'tub' | 'small' | 'bottle', Shape> = {
 
 const TITLES: Record<string, string[]> = {
   wp57: ['WHEY', 'PROTEIN'], wp40: ['WHEY', 'PROTEIN'], wp30: ['WHEY', 'PROTEIN'], wpe: ['WHEY', 'BLEND'],
-  yeast: ['YEAST', 'PROTEIN'], plant: ['PLANT', 'PROTEIN'], cre: ['CREATINE'], crel: ['CREATINE'], bcaa: ['BCAA'],
+  yeast: ['YEAST', 'PROTEIN'], plant: ['PLANT', 'PROTEIN'], cre: ['CREATINE'], bcaa: ['BCAA'],
   pre: ['PRE-', 'WORKOUT'], biotin: ['BIOTIN'], d3k2: ['D3+K2'], multi: ['MULTI', 'VITAMIN'], calc: ['CALCIUM'],
   omega: ['OMEGA-3'], wpi: ['WHEY', 'ISOLATE'], wpc: ['WHEY', 'CONCENTRATE'], wp60: ['WHEY', 'PROTEIN'], gainer: ['MASS', 'GAINER'], eaa: ['EAA'], fatburner: ['FAT', 'BURNER'], peanut: ['PEANUT', 'BUTTER'], tea: ['SPICED', 'MILK TEA'], mocha: ['MOCHA', 'COFFEE'], pcos: ['PCOS', 'CARE'], liver: ['LIVER', 'HEALTH'], vitc: ['VITAMIN', 'C'], gummies: ['GUMMIES'], drops: ['DROPS'],
 };
@@ -38,7 +38,6 @@ const LOOKS: Record<string, Look> = {
   tea: { tpl: 14, pal: ['#2E7D32', '#0F1A12', '#FFFFFF'] },
   mocha: { tpl: 14, pal: ['#6D4C2E', '#1A110A', '#FFFFFF'] },
   cre: { tpl: 1 }, //   Split, yellow
-  crel: { tpl: 13 }, // Stripes, orange
   bcaa: { tpl: 9 }, //  Badge, purple
   pre: { tpl: 2 }, //   Ember, red
   biotin: { tpl: 14 }, // Corner, teal on cream
@@ -127,7 +126,7 @@ export function label(p: Product, flavour: string, brand: string, L: { X: number
   const byy = Y + H * 0.84;
   const bh = H * 0.12;
   g += `<rect x="${cx0}" y="${byy}" width="${cw}" height="${bh}" fill="${bf2}"/>`;
-  const fl = flavour && flavour !== 'Standard' ? `${flavour} flavour`.toUpperCase() : 'NUTRACEUTICAL';
+  const fl = flavour && flavour !== 'Standard' ? (p.id === 'peanut' ? flavour : `${flavour} flavour`).toUpperCase() : 'NUTRACEUTICAL';
   const vs = H * 0.05;
   const vx = cx0 + 7;
   const vy = byy + bh / 2 - vs / 2;

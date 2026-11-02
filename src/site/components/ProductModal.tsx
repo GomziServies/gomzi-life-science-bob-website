@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import type { Product } from '../data/catalog';
-import { PACK_SIZES } from '../data/content';
+import { BROCHURE, PACK_SIZES } from '../data/content';
 import { listGalleryBanners, type GalleryBanner } from '../lib/api';
 import { type Details } from '../lib/labelArt';
 import { LabelView, type LogoShift } from './LabelView';
-import { LogoPlacement, PackToggle, type Pack } from './LabelParts';
+import { LogoPlacement, PackToggle, packText, type Pack } from './LabelParts';
 import { ProductJar, ownDesign, tintOf } from './ProductJar';
 
 interface Props {
@@ -77,7 +77,7 @@ export function ProductModal({ product, flavour, inCart, banner, pack, onPack, o
           <span className="tag" style={{ color: tintOf(product.id) }}>{product.tag}</span>
           <h3>{product.name}</h3>
           {product.sub && <span className="muted">{product.sub}</span>}
-          {product.group !== 'well' && <span className="packs">{product.unit === 'kg' ? 'Tub' : 'Jar'} · Pouch · Sachet</span>}
+          {product.group !== 'well' && <span className="packs">{packText(product)}</span>}
           {product.unit === 'kg' ? (
             <>
               <b className="pmodal-h">Sizes</b>
@@ -100,6 +100,25 @@ export function ProductModal({ product, flavour, inCart, banner, pack, onPack, o
                 ))}
               </div>
             </>
+          )}
+          {BROCHURE[product.id] && (
+            <div className="brochure-info">
+              <b className="pmodal-h">From the brochure</b>
+              <p>{BROCHURE[product.id].about}</p>
+              {BROCHURE[product.id].facts && (
+                <dl>
+                  {BROCHURE[product.id].facts!.map(([k, v]) => (
+                    <div key={k}><dt>{k}</dt><dd>{v}</dd></div>
+                  ))}
+                </dl>
+              )}
+              {BROCHURE[product.id].lists?.map(([title, items]) => (
+                <div key={title}>
+                  <span className="brochure-h">{title}</span>
+                  <ul>{items.map((it) => <li key={it}>{it}</li>)}</ul>
+                </div>
+              ))}
+            </div>
           )}
           {labels && labels.length > 0 && (
             <>

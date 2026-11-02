@@ -6,12 +6,23 @@ import { FlatLabel, type LogoShift } from './LabelView';
 
 export type Pack = 'jar' | 'pouch' | 'sachet';
 
+/** The packs a product comes in: powders in a tub or jar, a pouch or a sachet; peanut butter in a jar only; the instant mixes in a sachet only. */
+export const packsOf = (product: Product): Pack[] => (product.group === 'well' || product.id === 'peanut' ? ['jar'] : product.unit === 'sachet' ? ['sachet'] : ['jar', 'pouch', 'sachet']);
+
+/** The pack to show: the wanted one when the product comes in it, otherwise the product's own. */
+export const fitPack = (product: Product, pack: Pack): Pack => (packsOf(product).includes(pack) ? pack : packsOf(product)[0]);
+
+/** The packs written out, such as "Tub · Pouch · Sachet". */
+export const packText = (product: Product): string => packsOf(product).map((p) => (p === 'jar' ? (product.unit === 'kg' ? 'Tub' : 'Jar') : p === 'pouch' ? 'Pouch' : 'Sachet')).join(' · ');
+
 /** Switch the 3D view between the jar (or tub), a stand-up pouch and a sachet. */
 export function PackToggle({ product, pack, onPack, className }: { product: Product; pack: Pack; onPack: (p: Pack) => void; className?: string }) {
   const options: [Pack, string][] = [['jar', product.unit === 'kg' ? 'Tub' : 'Jar'], ['pouch', 'Pouch'], ['sachet', 'Sachet']];
+  const allowed = packsOf(product);
+  if (allowed.length < 2) return null;
   return (
     <div className={'packtoggle' + (className ? ' ' + className : '')} role="group" aria-label="Pack type">
-      {options.map(([id, name]) => (
+      {options.filter(([id]) => allowed.includes(id)).map(([id, name]) => (
         <button key={id} type="button" aria-pressed={pack === id} onClick={() => onPack(id)}>{name}</button>
       ))}
     </div>

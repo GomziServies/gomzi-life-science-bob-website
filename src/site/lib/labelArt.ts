@@ -27,7 +27,7 @@ export interface LabelSpec {
 export const PLACEHOLDER: Details = { brand: '', phone: '', email: '', address: '', city: '', pincode: '' };
 
 // Same figures as the studio's label sizes: tubs 450 x 140 mm, 250 g jars 310 x 85 mm, tablet bottles 177.8 x 70 mm.
-export const labelMm = (p: Product): { w: number; h: number } => (p.unit === 'kg' ? { w: 450, h: 140 } : p.unit === 'jar' || p.unit === 'sachet' ? { w: 310, h: 85 } : { w: 177.8, h: 70 });
+export const labelMm = (p: Product): { w: number; h: number } => (p.unit === 'sachet' ? { w: 140, h: 110 } : p.unit === 'kg' ? { w: 450, h: 140 } : p.unit === 'jar' ? { w: 310, h: 85 } : { w: 177.8, h: 70 });
 export const jarKind = (p: Product): 'tub' | 'jar' | 'bottle' => (p.unit === 'kg' ? 'tub' : p.unit === 'jar' || p.unit === 'sachet' ? 'jar' : 'bottle');
 
 /** Share of the wrap's width taken by the marketed-by panel, the front design and the manufacturer panel. */

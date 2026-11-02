@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CATALOG, GROUPS, type GroupId, type Product } from '../data/catalog';
 import { FAQ, MADE_TO_ORDER, PACK_SIZES } from '../data/content';
+import { packText } from '../components/LabelParts';
 import { useOrder } from '../state/order';
 import { WHATSAPP } from '../lib/config';
 import { defaultQty } from '../lib/rules';
@@ -173,7 +174,7 @@ export function HomePage() {
                         <h3>{p.name}</h3>
                         {p.sub && <span className="muted">{p.sub}</span>}
                         <span className="sizes">{p.unit === 'kg' ? PACK_SIZES.map((x) => x.label).join(' · ') : (p.weight ?? '').toLowerCase()}</span>
-                        {p.group !== 'well' && <span className="packs">{p.unit === 'kg' ? 'Tub' : 'Jar'} · Pouch · Sachet</span>}
+                        {p.group !== 'well' && <span className="packs">{packText(p)}</span>}
                         {p.labelSize && <span className="label-size">Label size: {p.labelSize}</span>}
                         <div className="pcard-foot">
                           {line ? (
