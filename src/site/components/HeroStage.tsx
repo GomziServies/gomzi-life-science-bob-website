@@ -7,7 +7,7 @@ import { LabelView, type LogoShift } from './LabelView';
 import { DesignPicks, LogoBox, LogoPlacement, PackToggle, type Pack } from './LabelParts';
 
 // The box starts with these products; the jar shows one of them, a different one each time the page opens
-const LIST = ['wp57', 'plant', 'yeast', 'cre', 'bcaa', 'pre', 'gummies', 'drops'];
+const LIST = ['wp57', 'plant', 'yeast', 'cre', 'bcaa', 'pre'];
 const TILE_NAME: Record<string, string> = { wp57: 'Whey Protein' };
 const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)];
 

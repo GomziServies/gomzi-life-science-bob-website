@@ -140,7 +140,7 @@ export function TryLabel({ start, logo, onLogo, onClose }: Props) {
             {(Object.keys(GROUPS) as GroupId[]).map((g) => (
               <div key={g} className="tl-group">
                 <h4>{GROUPS[g].title}</h4>
-                {CATALOG.filter((p) => p.group === g && !p.hidden).map((p) => (
+                {CATALOG.filter((p) => p.group === g && !p.hidden && !p.comingSoon).map((p) => (
                   <button key={p.id} type="button" aria-pressed={p.id === productId} onClick={() => choose(p.id)}>
                     <span>{p.name}</span>
                     {banners[p.id] && <i title="Label saved">✓</i>}

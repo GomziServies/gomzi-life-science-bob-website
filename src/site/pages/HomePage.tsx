@@ -165,6 +165,7 @@ export function HomePage() {
                       <div className="pcard-art" style={{ ['--tint' as string]: tintOf(p.id) }}>
                         <ProductJar className="jar-card" product={p} flavour={flavour} banner={applied?.thumb} />
                         {line && <span className="picked-badge">Added</span>}
+                        {p.comingSoon && <span className="soon-badge">Coming soon</span>}
                         <button type="button" className="eye" aria-label={`View ${p.name} details and all flavours`} title="View details" onClick={() => setDetail(p)}>
                           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg>
                         </button>
@@ -177,7 +178,9 @@ export function HomePage() {
                         {p.group !== 'well' && <span className="packs">{packText(p)}</span>}
                         {p.labelSize && <span className="label-size">Label size: {p.labelSize}</span>}
                         <div className="pcard-foot">
-                          {line ? (
+                          {p.comingSoon ? (
+                            <button className="btn btn-ghost btn-sm" disabled>Coming soon</button>
+                          ) : line ? (
                             <button className="btn btn-ghost btn-sm" onClick={() => removeFromCart(p.id)}>Remove</button>
                           ) : (
                             <button className="btn btn-lime btn-sm" onClick={() => addToCart({ productId: p.id, flavour, quantity: defaultQty(p, cart), packKg: 1 })}>

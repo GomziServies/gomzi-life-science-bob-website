@@ -134,7 +134,9 @@ export function ProductModal({ product, flavour, inCart, banner, pack, onPack, o
           )}
           {labels && labels.length > 0 && <LogoPlacement logo={logo} onLogo={onLogo} shift={shift} onShift={onShift} />}
           <div className="modal-actions">
-            {inCart ? (
+            {product.comingSoon ? (
+              <button type="button" className="btn btn-ghost" disabled>Coming soon</button>
+            ) : inCart ? (
               <button type="button" className="btn btn-ghost" onClick={onRemove}>Remove from inquiry</button>
             ) : (
               <button type="button" className="btn btn-lime" onClick={onAdd}>Add to inquiry</button>

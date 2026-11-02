@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { productById } from '../data/catalog';
 
 export type BannerOrigin = 'template' | 'ai' | 'blank';
 
@@ -101,7 +102,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   const api = useMemo<OrderApi>(
     () => ({
       ...state,
-      addToCart: (line) => setState((s) => (s.cart.some((l) => l.productId === line.productId) ? s : { ...s, cart: [...s.cart, line] })),
+      addToCart: (line) => setState((s) => (s.cart.some((l) => l.productId === line.productId) || productById(line.productId)?.comingSoon ? s : { ...s, cart: [...s.cart, line] })),
       updateQty: (productId, quantity) => setState((s) => ({ ...s, cart: s.cart.map((l) => (l.productId === productId ? { ...l, quantity } : l)) })),
       setFlavour: (productId, flavour) => setState((s) => ({ ...s, cart: s.cart.map((l) => (l.productId === productId ? { ...l, flavour } : l)) })),
       setPack: (productId, packKg) => setState((s) => ({ ...s, cart: s.cart.map((l) => (l.productId === productId ? { ...l, packKg } : l)) })),

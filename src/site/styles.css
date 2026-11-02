@@ -1136,3 +1136,5 @@ h2 { font-size: clamp(2rem, 3.4vw, 2.9rem); line-height: 1.08; }
 .brochure-info dd { margin: 0; font-weight: 700; text-align: right; }
 .brochure-h { display: block; margin-top: 6px; font-weight: 700; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--ink); }
 .brochure-info ul { margin: 2px 0 0; padding-left: 18px; list-style: disc; color: var(--muted); }
+
+.soon-badge { position: absolute; top: 12px; right: 12px; background: var(--ink); color: #fff; font-size: .72rem; font-weight: 800; border-radius: 999px; padding: 4px 10px; }

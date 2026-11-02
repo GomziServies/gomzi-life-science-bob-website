@@ -11,6 +11,8 @@ export interface Product {
   detailImage?: string;
   group: GroupId;
   name: string;
+  /** Shown on the website with "Coming soon"; it cannot be added to an inquiry yet. */
+  comingSoon?: boolean;
   /** Kept in the data but not shown on the website. */
   hidden?: boolean;
   sub: string;
@@ -58,6 +60,12 @@ export const CATALOG: Product[] = [
   { id: 'gummies', templateCategory: '', group: 'well', name: 'Gummies', sub: '60 gummies', unit: 'bottle', flavours: ['Mixed Fruit', 'Orange', 'Strawberry'], tag: 'CHEWABLE GUMMIES', weight: '60 GUMMIES' },
   { id: 'drops', templateCategory: '', group: 'well', name: 'Drops', sub: '30 ml dropper bottle', unit: 'bottle', flavours: ['Unflavoured'], tag: 'LIQUID DROPS', weight: '30 ML' },
 ];
+
+// From Instant Protein Spiced Milk Tea to the end of the list, every product is "Coming soon".
+const SOON_FROM = CATALOG.findIndex((p) => p.id === 'tea');
+CATALOG.forEach((p, i) => {
+  if (i >= SOON_FROM) p.comingSoon = true;
+});
 
 export const GROUPS: Record<GroupId, { title: string; note: string }> = {
   protein: { title: 'Protein powders', note: '500 g, 1 kg or 2 kg jars' },

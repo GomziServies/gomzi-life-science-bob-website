@@ -35,7 +35,7 @@ export function BrochurePage() {
               <thead><tr><th>Product</th><th>Details</th><th>Unit</th></tr></thead>
               <tbody>
                 {CATALOG.filter((p) => p.group === g && !p.hidden).map((p) => (
-                  <tr key={p.id}><td>{p.name}</td><td>{p.sub}</td><td>per {p.unit}</td></tr>
+                  <tr key={p.id}><td>{p.name}</td><td>{p.sub}</td><td>{p.comingSoon ? 'Coming soon' : `per ${p.unit}`}</td></tr>
                 ))}
               </tbody>
             </table>
