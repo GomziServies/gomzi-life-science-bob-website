@@ -151,8 +151,38 @@ function bodyShape(p: Product, sh: Shape, attrs: string): string {
   return `<path d="${d}" ${attrs}/>`;
 }
 
+/** A sachet packet (the 14 g instant mixes): a flat bag with crimped seals along its top and bottom and the label printed on its front. */
+function sachetSvg(p: Product, flavour: string, brand: string, id: string, banner?: string): string {
+  const { c } = lookOf(p.id);
+  const light = lum(c.S) > 0.5;
+  const x = 55;
+  const w = 130;
+  const y = 36;
+  const h = 228;
+  const seal = 17;
+  const L = { X: x, Y: y + seal, W: w, H: h - seal * 2 };
+  // slightly puffed sides, flat sealed top and bottom
+  const bulge = 5;
+  const d = `M${x + 3} ${y}H${x + w - 3}Q${x + w} ${y} ${x + w} ${y + 3}Q${x + w + bulge} ${y + h / 2} ${x + w} ${y + h - 3}Q${x + w} ${y + h} ${x + w - 3} ${y + h}H${x + 3}Q${x} ${y + h} ${x} ${y + h - 3}Q${x - bulge} ${y + h / 2} ${x} ${y + 3}Q${x} ${y} ${x + 3} ${y}Z`;
+  let s = `<svg viewBox="0 0 240 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(p.name)} sachet">`;
+  s += `<defs><clipPath id="${id}c"><path d="${d}"/></clipPath><linearGradient id="${id}g" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".3"/><stop offset=".18" stop-color="#fff" stop-opacity=".08"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset=".85" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".28"/></linearGradient></defs>`;
+  s += `<ellipse cx="120" cy="${y + h + 8}" rx="${w * 0.46}" ry="6" fill="#000" opacity=".2"/>`;
+  s += `<path d="${d}" fill="${light ? '#F1F1EE' : '#151515'}"/><g clip-path="url(#${id}c)">`;
+  s += banner ? `<image href="${esc(banner)}" x="${L.X}" y="${L.Y}" width="${L.W}" height="${L.H}" preserveAspectRatio="xMidYMid slice"/>` : label(p, flavour, brand, L, id);
+  // the crimped seals: a shaded band with fine ridges
+  for (const sy of [y, y + h - seal]) {
+    s += `<rect x="${x - bulge}" y="${sy}" width="${w + bulge * 2}" height="${seal}" fill="${light ? '#000' : '#fff'}" opacity=".12"/>`;
+    for (let i = 2; i < seal; i += 3.2) s += `<rect x="${x - bulge}" y="${sy + i}" width="${w + bulge * 2}" height="1" fill="${light ? '#000' : '#fff'}" opacity=".22"/>`;
+  }
+  s += `</g><path d="${d}" fill="url(#${id}g)"/>`;
+  // a tear notch on the top seal
+  s += `<path d="M${x} ${y + seal / 2}l5 -3v6z" fill="#fff" opacity=".55"/>`;
+  return s + '</svg>';
+}
+
 export function jarSvg(p: Product, flavour: string, brand: string, id: string, banner?: string): string {
-  const sh = SHAPES[p.unit === 'kg' ? 'tub' : p.unit === 'jar' || p.unit === 'sachet' ? 'small' : 'bottle'];
+  if (p.unit === 'sachet') return sachetSvg(p, flavour, brand, id, banner);
+  const sh = SHAPES[p.unit === 'kg' ? 'tub' : p.unit === 'jar' ? 'small' : 'bottle'];
   const { c } = lookOf(p.id);
   const light = lum(c.S) > 0.5;
   const jar = light ? '#F1F1EE' : '#151515';
