@@ -148,9 +148,9 @@ const WHEY_ROWS = ['Protein', 'Lactose', 'Fat', 'Absorption', 'Cost', 'Best for'
 const whey = (about: string, v: string[]): BrochureInfo => ({ about, facts: WHEY_ROWS.map((k, i): [string, string] => [k, v[i]]) });
 
 export const BROCHURE: Record<string, BrochureInfo> = {
-  wpi: whey('Whey protein isolate: the purest whey, 90% protein.', ['Very high', 'Very low', 'Very low', 'Fast', 'Premium', 'Lean muscle & recovery', 'Premium protein powders']),
-  wpc: whey('Whey protein concentrate, 80% protein.', ['High', 'Moderate', 'Low', 'Medium to fast', 'Mid-range', 'Muscle building', 'Fitness supplements']),
-  wp60: whey('Whey protein at 60%: the economical choice for daily protein.', ['Moderate', 'Low to moderate', 'Moderate', 'Medium to fast', 'Economical', 'Daily protein intake', 'Protein blends']),
+  wpi: whey('Whey protein isolate: the purest form of whey.', ['Very high', 'Very low', 'Very low', 'Fast', 'Premium', 'Lean muscle & recovery', 'Premium protein powders']),
+  wpc: whey('Whey protein concentrate for muscle building.', ['High', 'Moderate', 'Low', 'Medium to fast', 'Mid-range', 'Muscle building', 'Fitness supplements']),
+  wp60: whey('The economical whey protein for daily protein intake.', ['Moderate', 'Low to moderate', 'Moderate', 'Medium to fast', 'Economical', 'Daily protein intake', 'Protein blends']),
   wpe: whey('Whey protein blend for everyday fitness.', ['High', 'Moderate', 'Moderate', 'Medium', 'Mid-range', 'General fitness', 'Protein powders']),
   gainer: { about: 'A mass gainer with a recovery blend of BCAA 2:1:1 for muscle size and recovery.' },
   plant: { about: 'A vegan, plant-based protein with a protein-rich blend.' },
