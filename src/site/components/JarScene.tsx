@@ -89,7 +89,7 @@ function bagGeometry(w: number, h: number, depth: number, side: 1 | -1, pouch = 
       pos.push(c * halfW, v * h, side * z);
       uv.push(side === 1 ? u : 1 - u, v);
       // darker towards the sides and the seals, so the bag reads as puffed out
-      const shade = pouch ? 0.5 + 0.5 * Math.pow(edge, 0.6) : 0.55 + 0.45 * Math.pow(edge, 0.7) * (0.55 + 0.45 * Math.min(1, belly * 1.2));
+      const shade = pouch ? 0.74 + 0.26 * Math.pow(edge, 0.6) : 0.55 + 0.45 * Math.pow(edge, 0.7) * (0.55 + 0.45 * Math.min(1, belly * 1.2));
       col.push(shade, shade, shade);
     }
   }
@@ -171,12 +171,49 @@ function bagFaces(wrap: HTMLCanvasElement, panels: [number, number, number], asp
     const dh = wrap.height * k;
     const dy = top + (rh - dh) / 2;
     const dx = rx + (rw - dw) / 2;
-    // beyond the design, its own edge pixels are stretched outwards, so colours and gradients run on over the sides, top and bottom
-    ctx.drawImage(strip, 0, 0, stripW, 1, 0, 0, W, dy);
-    ctx.drawImage(strip, 0, wrap.height - 1, stripW, 1, 0, dy + dh, W, H - dy - dh);
-    ctx.drawImage(strip, 0, 0, 1, wrap.height, 0, dy, dx, dh);
-    ctx.drawImage(strip, stripW - 1, 0, 1, wrap.height, dx + dw, dy, W - dx - dw, dh);
-    ctx.drawImage(strip, 0, 0, stripW, wrap.height, dx, dy, dw, dh);
+    // beyond the design the bag carries its edge colours on, smoothed: each edge strip is averaged down to a soft gradient (no streaks from
+    // fine detail), and the design fades into it instead of ending in a hard line
+    const soft = (sx: number, sy: number, sw: number, sh: number, vertical: boolean): HTMLCanvasElement => {
+      const t = document.createElement('canvas');
+      t.width = vertical ? 1 : 48;
+      t.height = vertical ? 48 : 1;
+      const tc = t.getContext('2d')!;
+      tc.imageSmoothingQuality = 'high';
+      tc.drawImage(strip, sx, sy, sw, sh, 0, 0, t.width, t.height);
+      return t;
+    };
+    const band = Math.max(2, Math.round(wrap.height * 0.04));
+    const bandW = Math.max(2, Math.round(stripW * 0.02));
+    ctx.imageSmoothingQuality = 'high';
+    if (dy > 1) {
+      // the edge colour also runs in under the design's faded edges
+      const under = dh * 0.1;
+      ctx.drawImage(soft(0, 0, stripW, band, false), 0, 0, W, dy + under);
+      ctx.drawImage(soft(0, wrap.height - band, stripW, band, false), 0, dy + dh - under, W, H - dy - dh + under);
+    }
+    if (dx > 1) {
+      ctx.drawImage(soft(0, 0, bandW, wrap.height, true), 0, dy, dx + 2, dh);
+      ctx.drawImage(soft(stripW - bandW, 0, bandW, wrap.height, true), dx + dw - 2, dy, W - dx - dw + 2, dh);
+    }
+    // the design itself, its top and bottom edges fading softly into the bag's colour
+    const art = document.createElement('canvas');
+    art.width = Math.round(dw);
+    art.height = Math.round(dh);
+    const actx = art.getContext('2d')!;
+    actx.imageSmoothingQuality = 'high';
+    actx.drawImage(strip, 0, 0, stripW, wrap.height, 0, 0, art.width, art.height);
+    if (dy > 1) {
+      const f = Math.min(0.06, (dy / dh) * 0.5 + 0.02);
+      const mask = actx.createLinearGradient(0, 0, 0, art.height);
+      mask.addColorStop(0, 'rgba(0,0,0,0)');
+      mask.addColorStop(f, 'rgba(0,0,0,1)');
+      mask.addColorStop(1 - f, 'rgba(0,0,0,1)');
+      mask.addColorStop(1, 'rgba(0,0,0,0)');
+      actx.globalCompositeOperation = 'destination-in';
+      actx.fillStyle = mask;
+      actx.fillRect(0, 0, art.width, art.height);
+    }
+    ctx.drawImage(art, dx, dy);
     seals(ctx);
     return c;
   };
@@ -245,7 +282,7 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
       const pouch = kind === 'pouch';
       const bw = (pouch ? 160 : 70) / R;
       const bh = (pouch ? 240 : 110) / R;
-      const face = () => new THREE.MeshPhysicalMaterial({ roughness: 0.45, clearcoat: 0.15, clearcoatRoughness: 0.5, color: 0xffffff, vertexColors: true });
+      const face = () => new THREE.MeshPhysicalMaterial({ roughness: 0.72, clearcoat: 0, clearcoatRoughness: 0.6, envMapIntensity: 0.45, color: 0xffffff, vertexColors: true });
       const front = face();
       const back = face();
       group.add(new THREE.Mesh(bagGeometry(bw, bh, pouch ? 1.2 : 0.22, 1, pouch), front));
