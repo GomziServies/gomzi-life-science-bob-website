@@ -15,7 +15,7 @@ const TITLES: Record<string, string[]> = {
   wp57: ['WHEY', 'PROTEIN'], wp40: ['WHEY', 'PROTEIN'], wp30: ['WHEY', 'PROTEIN'], wpe: ['WHEY', 'BLEND'],
   yeast: ['YEAST', 'PROTEIN'], plant: ['PLANT', 'PROTEIN'], cre: ['CREATINE'], crel: ['CREATINE'], bcaa: ['BCAA'],
   pre: ['PRE-', 'WORKOUT'], biotin: ['BIOTIN'], d3k2: ['D3+K2'], multi: ['MULTI', 'VITAMIN'], calc: ['CALCIUM'],
-  omega: ['OMEGA-3'], pcos: ['PCOS', 'CARE'], liver: ['LIVER', 'HEALTH'], vitc: ['VITAMIN', 'C'], gummies: ['GUMMIES'], drops: ['DROPS'],
+  omega: ['OMEGA-3'], wpi: ['WHEY', 'ISOLATE'], wpc: ['WHEY', 'CONCENTRATE'], wp60: ['WHEY', 'PROTEIN'], gainer: ['MASS', 'GAINER'], eaa: ['EAA'], fatburner: ['FAT', 'BURNER'], peanut: ['PEANUT', 'BUTTER'], tea: ['SPICED', 'MILK TEA'], mocha: ['MOCHA', 'COFFEE'], pcos: ['PCOS', 'CARE'], liver: ['LIVER', 'HEALTH'], vitc: ['VITAMIN', 'C'], gummies: ['GUMMIES'], drops: ['DROPS'],
 };
 
 // Each product gets its own label design and colours (index into the blueprint's TPLS, then primary / base / text colour),
@@ -28,6 +28,15 @@ const LOOKS: Record<string, Look> = {
   wpe: { tpl: 7 }, //   Frame, gold
   yeast: { tpl: 8 }, // Wave, teal
   plant: { tpl: 10 }, //Duo, green
+  wpi: { tpl: 0 }, //   Slash, red on black (Whey Isolate)
+  wpc: { tpl: 10 }, //  Duo, green (Whey Concentrate)
+  wp60: { tpl: 3 }, //  Clean, amber on white
+  gainer: { tpl: 7 }, // Frame, gold
+  eaa: { tpl: 8, pal: ['#26A69A', '#0B1F1D', '#FFFFFF'] },
+  fatburner: { tpl: 6, pal: ['#1E5BFF', '#0A1020', '#FFFFFF'] },
+  peanut: { tpl: 11, pal: ['#C68642', '#1A1105', '#FFFFFF'] },
+  tea: { tpl: 14, pal: ['#2E7D32', '#0F1A12', '#FFFFFF'] },
+  mocha: { tpl: 14, pal: ['#6D4C2E', '#1A110A', '#FFFFFF'] },
   cre: { tpl: 1 }, //   Split, yellow
   crel: { tpl: 13 }, // Stripes, orange
   bcaa: { tpl: 9 }, //  Badge, purple
@@ -131,7 +140,7 @@ export function label(p: Product, flavour: string, brand: string, L: { X: number
 }
 
 export function jarSvg(p: Product, flavour: string, brand: string, id: string, banner?: string): string {
-  const sh = SHAPES[p.unit === 'kg' ? 'tub' : p.unit === 'jar' ? 'small' : 'bottle'];
+  const sh = SHAPES[p.unit === 'kg' ? 'tub' : p.unit === 'jar' || p.unit === 'sachet' ? 'small' : 'bottle'];
   const { c } = lookOf(p.id);
   const light = lum(c.S) > 0.5;
   const jar = light ? '#F1F1EE' : '#151515';

@@ -9,4 +9,4 @@ export const ART: Record<string, string> = {
   "capsule": "<g transform=\"rotate(-35 50 50)\"><rect x=\"18\" y=\"38\" width=\"64\" height=\"24\" rx=\"12\" fill=\"#FFFFFF\" stroke=\"#D0D0D0\" stroke-width=\"2\"/><path d=\"M50 38h20a12 12 0 0 1 0 24H50z\" fill=\"#7CB833\"/></g><circle cx=\"70\" cy=\"74\" r=\"10\" fill=\"#FFFFFF\" stroke=\"#D0D0D0\" stroke-width=\"2\"/><path d=\"M62 74h16\" stroke=\"#D0D0D0\" stroke-width=\"2\"/>"
 };
 
-export const ART_FOR: Record<string, string> = { Chocolate: 'choc', 'Belgian Chocolate': 'choc', 'Mint Chocolate': 'choc', Cappuccino: 'coffee', Coffee: 'coffee', 'Mawa Kulfi': 'kulfi', Lemon: 'lemon', 'Tangy Orange': 'orange', 'Fruit Punch': 'punch', Unflavoured: '', Standard: 'capsule' };
+export const ART_FOR: Record<string, string> = { Chocolate: 'choc', 'Belgian Chocolate': 'choc', 'Mint Chocolate': 'choc', Cappuccino: 'coffee', Coffee: 'coffee', 'Mawa Kulfi': 'kulfi', Lemon: 'lemon', 'Tangy Orange': 'orange', 'Fruit Punch': 'punch', 'Mix Fruit': 'punch', 'Brownie Chocolate': 'choc', Orange: 'orange', 'Masala Chai': '', Mocha: 'coffee', Unflavoured: '', Standard: 'capsule' };

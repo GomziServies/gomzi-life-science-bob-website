@@ -76,18 +76,18 @@ export const STOCK: Record<string, Record<string, number>> = {
 /** Fixed nutrition tables (approximate values): [nutrient, per serving, per 100 g]. Products without one use the standard note. */
 export const NUTRITION: Record<string, { serving: string; rows: string[][] }> = {
   plant: {serving:'35 g', rows:[['Energy','143.5 kcal','410 kcal'],['Protein','25.00 g','71.43 g'],['Total carbohydrate','4.20 g','12.00 g'],['Total sugars','0.70 g','2.00 g'],['Added sugars','0 g','0 g'],['Total fat','1.93 g','5.50 g'],['Saturated fat','0.35 g','1.00 g'],['Trans fat','0 g','0 g'],['Cholesterol','0 mg','0 mg'],['Sodium','140 mg','400 mg'],['Potassium','245 mg','700 mg']]},
+  wpi: {serving:'35 g (1 level scoop)', rows:[['Energy','113.47 kcal','378.23 kcal'],['Total protein','25.05 g','73.39 g'],['Carbohydrates','5.50 g','14.69 g'],['Added sugar','0 g','0 g'],['Dietary fibre','1.78 g','5.39 g'],['Total fat','1.92 g','2.96 g'],['Saturated fatty acid','0.66 g','2.0 g'],['Polyunsaturated fatty acid','0.52 g','1.57 g'],['Monounsaturated fatty acid','1.54 g','4.66 g'],['Trans fatty acid','0.04 g','0.12 g'],['Cholesterol','0.02 g','0.06 g'],['Potassium','158.8 mg','481.21 mg'],['Sodium','135.5 mg','410.60 mg']]},
+  wpc: {serving:'35 g (1 level scoop)', rows:[['Energy','133.72 kcal','382.06 kcal'],['Protein','24 g','68.57 g'],['Total carbohydrates','5.38 g','15.37 g'],['Total sugar','5.3 g','15.14 g'],['Added sugars','0 g','0 g'],['Total fat','1.8 g','5.14 g'],['Saturated fatty acid','0.62 g','1.77 g'],['Polyunsaturated fatty acid','0.48 g','1.37 g'],['Monounsaturated fatty acid','0.99 g','2.83 g'],['Trans fat','0 g','0 g'],['Cholesterol','28 mg','80 mg'],['Potassium','230 mg','657.14 mg'],['Sodium','150 mg','428.57 mg']]},
+  wp60: {serving:'35 g (1 level scoop)', rows:[['Energy','135 kcal','386 kcal'],['Protein','22 g','62.9 g'],['Carbohydrate','8 g','22.9 g'],['Total sugars','3.5 g','10 g'],['Added sugars','0 g','0 g'],['Total fat','1.7 g','4.9 g'],['Saturated fat','1.1 g','3.1 g'],['Trans fat','0 g','0 g'],['Sodium','110 mg','314 mg']]},
+  gainer: {serving:'35 g (1 level scoop)', rows:[['Energy','—','387.01 kcal'],['Total protein','—','17.5 g'],['Carbohydrates','—','76.8 g'],['Added sugar','—','0 g'],['Dietary fibre','—','1.15 g'],['Total fat','—','1.09 g'],['Saturated fatty acid','—','0.47 g'],['Polyunsaturated fatty acid','—','0.38 g'],['Monounsaturated fatty acid','—','0.97 g'],['Trans fatty acid','—','0.07 g'],['Cholesterol','—','0 g'],['Potassium','—','172.67 mg'],['Sodium','—','138.89 mg'],['Recovery blend BCAA 2:1:1 · L-Leucine','—','1333 mg'],['L-Isoleucine','—','666 mg'],['L-Valine','—','666 mg']]},
+  peanut: {serving:'32 g', rows:[['Energy','199 kcal','622 kcal'],['Protein','9 g','28 g'],['Carbohydrate','5 g','16 g'],['Dietary fibre','2 g','6 g'],['Total sugar','1 g','3 g'],['Added sugar','0 g','0 g'],['Total fat','14 g','45 g'],['Saturated fat','2 g','7 g'],['Polyunsaturated fat','5 g','15 g'],['Monounsaturated fat','7 g','23 g'],['Trans fat','0 g','0 g'],['Cholesterol','0 mg','0 mg'],['Sodium','53 mg','165 mg']]},
+  tea: {serving:'14 g', rows:[['Energy','46.5 kcal','332 kcal'],['Protein','4.6 g','32.8 g'],['Total carbohydrates','6.8 g','48.5 g'],['Total sugars','5.5 g','39.3 g'],['Added sugars','0 g','0 g'],['Dietary fibre','0.2 g','1.5 g'],['Total fat','0.1 g','0.8 g'],['Sodium','123.6 mg','883 mg']]},
+  mocha: {serving:'14 g', rows:[['Energy','45.3 kcal','323.6 kcal'],['Protein','4.4 g','31.4 g'],['Total carbohydrates','6.2 g','44.3 g'],['Total sugars','5.2 g','37.1 g'],['Added sugars','0 g','0 g'],['Dietary fibre','0.2 g','1.4 g'],['Total fat','0.14 g','1 g'],['Sodium','117.3 mg','838 mg']]},
   yeast: {serving:'35 g', rows:[['Energy','~126 kcal','~360 kcal'],['Protein','24.00 g','68.57 g'],['Total carbohydrates','~2.80 g','~8.00 g'],['Total sugars','~0 g','~0 g'],['Added sugars','0 g','0 g'],['Total fat','~0.74 g','~2.10 g'],['Saturated fat','~0.18 g','~0.50 g'],['Trans fat','0 g','0 g'],['Sodium','~70 mg','~200 mg'],['Dietary fibre','~3.50 g','~10.00 g']]}
 };
 
 export const MADE_TO_ORDER = [
-  '90% Whey Protein Isolate',
-  '80% Whey Protein Concentrate',
-  'Mass Gainer',
-  'EAA',
-  'Fat Burner',
   'IGNITE energy drink mix',
-  'Instant Protein Spiced Milk Tea',
-  'Instant Protein Mocha Coffee',
 ];
 
 /** Your own formula: one-time development charges, offered per product. */
