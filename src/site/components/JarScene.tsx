@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { TUB } from './tubProfile';
 
 export interface JarSceneProps {
@@ -19,6 +21,8 @@ export interface JarSceneProps {
   autoTurn?: boolean;
   /** Called when the browser cannot draw 3D. */
   onUnsupported?: () => void;
+  /** Called once with a picture of the finished pack (a PNG) as soon as its model and label are drawn: a product card shows these instead of a live 3D view. */
+  onSnapshot?: (dataUrl: string) => void;
 }
 
 // Jar shapes, in units of the jar's radius: shoulder height, neck radius, cap radius and height
@@ -32,6 +36,77 @@ const SHAPE = {
 
 /** A jar is shown at its real size next to the others: nothing is drawn smaller than this height (mm) in the frame, so a protein tub looks big and a bottle looks small. */
 const FRAME_MM = 150;
+
+/** The protein tub: a 3D model (public/models/protein-jar.obj): a body, a lid with its ridges and a label band whose picture wraps once round. Loaded once. */
+const JAR_MODEL = {
+  url: `${import.meta.env.BASE_URL}models/protein-jar.obj`,
+  /** The label band's radius, bottom and top in the model's own units, and the lid's top. */
+  labelR: 1.44,
+  labelY0: 0.71,
+  labelY1: 2.84,
+  top: 4.37,
+};
+let jarModel: Promise<THREE.Group> | null = null;
+const loadJar = () => (jarModel ??= new OBJLoader().loadAsync(JAR_MODEL.url).catch((e) => {
+  jarModel = null;
+  throw e;
+}));
+
+/** The stand-up pouch: a 3D model (public/models/pouch.glb) with a front face, a back face and its own zip and seals. The label goes on the two faces. */
+const POUCH_MODEL = {
+  url: `${import.meta.env.BASE_URL}models/pouch.glb`,
+  w: 0.12,
+  h: 0.2,
+  /** Where each face sits in the model's square picture (shares of the picture, from its top left): the label is drawn into this box. */
+  uv: { x0: 0.1987, x1: 0.8057, y0: 0.0917, y1: 0.933 },
+};
+let pouchModel: Promise<THREE.Group> | null = null;
+const loadPouch = () => (pouchModel ??= new GLTFLoader().loadAsync(POUCH_MODEL.url).then((g) => g.scene).catch((e) => {
+  pouchModel = null;
+  throw e;
+}));
+
+/** The sachet: a 3D model (public/models/sachet.glb) with a picture atlas: the front design on its right half, the back design on its left (drawn upside down). */
+const SACHET_MODEL = {
+  url: `${import.meta.env.BASE_URL}models/sachet.glb`,
+  /** The model's size (width across the faces, height) and where each face sits in the atlas (shares of the picture, from its top left). */
+  w: 156,
+  h: 210,
+  front: { x0: 0.495, x1: 0.972, y0: 0.157, y1: 0.655 },
+  back: { x0: 0.015, x1: 0.495, y0: 0.157, y1: 0.655 },
+};
+let sachetModel: Promise<THREE.Group> | null = null;
+const loadSachet = () => (sachetModel ??= new GLTFLoader().loadAsync(SACHET_MODEL.url).then((g) => g.scene).catch((e) => {
+  sachetModel = null;
+  throw e;
+}));
+
+/** The small jar (BCAA, creatine, pre-workout): a 3D model (public/models/small-jar.glb), a jar with its lid and a label band. The label's picture lives in an
+ * atlas turned on its side: along the atlas' height it goes once round the jar (the middle faces the front), across its width it runs from the label's top to its bottom. */
+const SMALL_JAR_MODEL = {
+  url: `${import.meta.env.BASE_URL}models/small-jar.glb`,
+  /** In the model's own units (metres): the label's mean radius, its bottom and top, and the whole jar's bottom and top. */
+  labelR: 0.0464,
+  labelY0: -0.0413,
+  labelY1: 0.0262,
+  bottom: -0.0472,
+  top: 0.0455,
+  /** The label's width in the atlas (shares of the picture): from the label's top to its bottom. */
+  u0: 0.0245,
+  u1: 0.2565,
+  /** The label's two ends meet 12 degrees round from the model's front: the model is turned (degrees) to put that join at the back. */
+  turn: 168,
+};
+let smallJarModel: Promise<THREE.Group> | null = null;
+const loadSmallJar = () => (smallJarModel ??= new GLTFLoader().loadAsync(SMALL_JAR_MODEL.url).then((g) => g.scene).catch((e) => {
+  smallJarModel = null;
+  throw e;
+}));
+
+/** Loads every 3D model now, so the first card that needs one does not wait for it. */
+export const preloadModels = () => {
+  for (const load of [loadJar, loadPouch, loadSachet, loadSmallJar]) load().catch(() => undefined);
+};
 
 /**
  * The bottom of a tablet bottle, like the real black bottle: a wide, softly rounded base corner, and the wall narrowing a little towards the
@@ -54,71 +129,13 @@ function bottleBase(wallR: number, corner: number, inset: number, top: number): 
   return pts;
 }
 
-/** One face of a bag (a stand-up pouch or a sachet): a sheet that puffs out in the middle and is flat along its heat-sealed top and bottom. */
-function bagGeometry(w: number, h: number, depth: number, side: 1 | -1, pouch = false) {
-  const nx = 48;
-  const ny = 96;
-  const pos: number[] = [];
-  const uv: number[] = [];
-  const col: number[] = [];
-  const idx: number[] = [];
-  const smooth = (t: number) => t * t * (3 - 2 * t);
-  const sealTop = pouch ? 0.07 : 0.1;
-  for (let j = 0; j <= ny; j++) {
-    const v = j / ny;
-    let halfW: number;
-    let belly: number;
-    if (pouch) {
-      // a stand-up pouch seen from the side is a wedge: thin at the sealed top, growing steadily thicker down to a full, flat base
-      const top = 1 - sealTop;
-      const t = Math.min(1, v / top); // 0 at the base, 1 at the top seal
-      halfW = 0.5 * w * (1 - 0.05 * t);
-      const foot = 0.94 + 0.06 * smooth(Math.min(1, v / 0.05));
-      // full and heavy low down, a little smaller through the middle and top, then a short rounded shoulder into the seal
-      const shoulder = smooth(Math.max(0, Math.min(1, (top - v) / 0.09)));
-      belly = foot * (1 - 0.3 * Math.pow(t, 1.8)) * shoulder;
-    } else {
-      halfW = 0.5 * w;
-      belly = smooth(Math.min(1, Math.min(v / 0.14, (1 - v) / 0.14))) * (0.8 + 0.2 * Math.sin(Math.PI * v));
-    }
-    for (let i = 0; i <= nx; i++) {
-      const u = i / nx;
-      const c = 2 * u - 1;
-      // pouch: a flat front that turns sharply into the side wall (a boxy section); sachet: a soft pillow
-      const n = 4.5 + 4 * (1 - Math.min(1, v / (1 - sealTop))); // boxy low down, folding in to a lens (the side gusset crease) higher up
-      const edge = pouch ? Math.pow(Math.max(0, 1 - Math.pow(Math.abs(c), n)), 1 / n) : Math.pow(Math.max(0, 1 - Math.pow(c, 2)), 0.55);
-      const z = depth * edge * belly;
-      pos.push(c * halfW, v * h, side * z);
-      uv.push(side === 1 ? u : 1 - u, v);
-      // darker towards the sides and the seals, so the bag reads as puffed out
-      const shade = pouch ? 0.74 + 0.26 * Math.pow(edge, 0.6) : 0.55 + 0.45 * Math.pow(edge, 0.7) * (0.55 + 0.45 * Math.min(1, belly * 1.2));
-      col.push(shade, shade, shade);
-    }
-  }
-  for (let j = 0; j < ny; j++) {
-    for (let i = 0; i < nx; i++) {
-      const a = j * (nx + 1) + i;
-      const b = a + 1;
-      const c = a + nx + 1;
-      const d = c + 1;
-      if (side === 1) idx.push(a, b, d, a, d, c);
-      else idx.push(a, d, b, a, c, d);
-    }
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  g.setIndex(idx);
-  g.computeVertexNormals();
-  return g;
-}
 
 /** The front and back pictures of a bag from the label wrap: the front design on the front, the two side panels on the back, with the sealed edges drawn in. */
-function bagFaces(wrap: HTMLCanvasElement, panels: [number, number, number], aspect: number, bg: string, pouch: boolean): [HTMLCanvasElement, HTMLCanvasElement] {
+function bagFaces(wrap: HTMLCanvasElement, panels: [number, number, number], aspect: number, bg: string, pouch: boolean, drawSeals = true): [HTMLCanvasElement, HTMLCanvasElement] {
   const H = 1536;
   const W = Math.round(H * aspect);
   const seals = (ctx: CanvasRenderingContext2D) => {
+    if (!drawSeals) return;
     const top = H * (pouch ? 0.07 : 0.1);
     const bot = H * (pouch ? 0.035 : 0.1);
     ctx.fillStyle = 'rgba(0,0,0,0.14)';
@@ -223,7 +240,9 @@ function bagFaces(wrap: HTMLCanvasElement, panels: [number, number, number], asp
 }
 
 /** A jar with the label wrapped round it. It flips from panel to panel by itself and can be turned by hand. */
-export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, className, autoTurn = true, onUnsupported }: JarSceneProps) {
+export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, className, autoTurn = true, onUnsupported, onSnapshot }: JarSceneProps) {
+  const snapRef = useRef(onSnapshot);
+  snapRef.current = onSnapshot;
   const host = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLCanvasElement | null>(null);
   wrapRef.current = wrap;
@@ -277,42 +296,174 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
       group.add(band);
     };
     let total: number;
-    let bag: { front: THREE.MeshPhysicalMaterial; back: THREE.MeshPhysicalMaterial; aspect: number } | null = null;
+    let disposed = false;
+    let smallLabel: THREE.Mesh | null = null;
+    // a pack drawn from a model is ready when the model is in the scene; the others at once
+    let modelReady = !(kind === 'pouch' || kind === 'sachet' || kind === 'tub' || kind === 'jar');
+    let snapped = false;
+    let snap = () => undefined as void;
+    let bag: { front: THREE.MeshPhysicalMaterial; back: THREE.MeshPhysicalMaterial; aspect: number; plain?: boolean; atlas?: boolean; original?: CanvasImageSource | null } | null = null;
 
-    if (isBag) {
-      // a stand-up pouch or a sachet: a front and a back face
-      const pouch = kind === 'pouch';
-      const bw = (pouch ? 160 : 70) / R;
-      const bh = (pouch ? 240 : 110) / R;
-      const face = () => new THREE.MeshPhysicalMaterial({ roughness: 0.72, clearcoat: 0, clearcoatRoughness: 0.6, envMapIntensity: 0.45, color: 0xffffff, vertexColors: true });
-      const front = face();
-      const back = face();
-      group.add(new THREE.Mesh(bagGeometry(bw, bh, pouch ? 1.2 : 0.22, 1, pouch), front));
-      group.add(new THREE.Mesh(bagGeometry(bw, bh, pouch ? 1.2 : 0.22, -1, pouch), back));
-      bag = { front, back, aspect: bw / bh };
+    if (kind === 'pouch') {
+      // the pouch model, scaled to the pouch's size; its front and back faces take the label
+      const bh = 240 / R;
+      const k = bh / POUCH_MODEL.h;
+      const front = new THREE.MeshPhysicalMaterial({ roughness: 0.45, clearcoat: 0.15, clearcoatRoughness: 0.5, color: 0xffffff });
+      const back = front.clone();
+      bag = { front, back, aspect: (POUCH_MODEL.uv.x1 - POUCH_MODEL.uv.x0) / (POUCH_MODEL.uv.y1 - POUCH_MODEL.uv.y0), plain: true };
       total = bh + 0.06;
+      loadPouch()
+        .then((model) => {
+          if (disposed) return;
+          const root = model.clone(true);
+          root.traverse((o) => {
+            const mesh = o as THREE.Mesh;
+            if (!mesh.isMesh) return;
+            const m = mesh.material as THREE.MeshStandardMaterial;
+            if (m.name === 'green_f') {
+              mesh.material = front;
+            } else if (m.name === 'green_b') {
+              mesh.material = back;
+            }
+          });
+          root.scale.setScalar(k);
+          group.add(root);
+          modelReady = true;
+          snap();
+        })
+        .catch(() => undefined);
+    } else if (isBag) {
+      // the sachet model: one mesh with one picture atlas; the atlas is drawn from the two faces of the label
+      const bh = 110 / R;
+      const k = bh / SACHET_MODEL.h;
+      const atlas = new THREE.MeshPhysicalMaterial({ roughness: 0.45, clearcoat: 0.15, clearcoatRoughness: 0.5, color: 0xffffff, side: THREE.DoubleSide });
+      bag = { front: atlas, back: atlas, aspect: SACHET_MODEL.w / SACHET_MODEL.h, plain: true, atlas: true };
+      total = bh + 0.06;
+      loadSachet()
+        .then((model) => {
+          if (disposed) return;
+          const root = model.clone(true);
+          let original: CanvasImageSource | null = null;
+          root.traverse((o) => {
+            const mesh = o as THREE.Mesh;
+            if (!mesh.isMesh) return;
+            const m = mesh.material as THREE.MeshStandardMaterial;
+            original = (m.map?.image as CanvasImageSource) ?? null;
+            const n = m.normalMap;
+            if (n) {
+              atlas.normalMap = n;
+            }
+            mesh.material = atlas;
+          });
+          bag!.original = original;
+          // the faces of the sachet look along the model's x axis: turn it so the front faces the camera
+          const pivot = new THREE.Group();
+          root.scale.setScalar(k);
+          pivot.rotation.y = -Math.PI / 2;
+          pivot.add(root);
+          group.add(pivot);
+          api.current?.setWrap(wrapRef.current);
+          modelReady = true;
+          snap();
+        })
+        .catch(() => undefined);
     } else if (isTub) {
-      // the outline of a real protein tub, its straight wall stretched to the label's height
-      const [w0, w1] = TUB.wall;
-      const wallLen = w1 - w0;
-      const mapY = (y: number) => (y <= w0 ? y : y >= w1 ? y + (labelH - wallLen) : w0 + ((y - w0) * labelH) / wallLen);
-      const tp = TUB.body.map(([r, y]) => new THREE.Vector2(r, mapY(y)));
-      tp.push(new THREE.Vector2(0, mapY(TUB.lid.y0)));
-      group.add(new THREE.Mesh(new THREE.LatheGeometry(tp, 160), body));
-      // the lid, in the design's colour, with a rounded top edge
-      const y0 = mapY(TUB.lid.y0);
-      const y1 = mapY(TUB.lid.y1);
-      const lr = TUB.lid.r;
-      const e = 0.05;
-      const lp = [new THREE.Vector2(0, y0), new THREE.Vector2(lr, y0), new THREE.Vector2(lr, y1 - e)];
-      for (let i = 1; i <= 6; i++) {
-        const a = (i / 6) * (Math.PI / 2);
-        lp.push(new THREE.Vector2(lr - e + e * Math.cos(a), y1 - e + e * Math.sin(a)));
-      }
-      lp.push(new THREE.Vector2(0, y1));
-      group.add(new THREE.Mesh(new THREE.LatheGeometry(lp, 128), capMat));
-      wrapBand(TUB.wallR + 0.004, mapY(w0));
-      total = y1 + 0.06;
+      // the protein tub model, its label band stretched to the label's height (the body above it moves up by the same amount)
+      const k = (TUB.wallR + 0.004) / JAR_MODEL.labelR;
+      const bandH = JAR_MODEL.labelY1 - JAR_MODEL.labelY0;
+      const wanted = labelH / k;
+      const mapY = (y: number) => (y <= JAR_MODEL.labelY0 ? y : y >= JAR_MODEL.labelY1 ? y + (wanted - bandH) : JAR_MODEL.labelY0 + ((y - JAR_MODEL.labelY0) * wanted) / bandH);
+      total = (JAR_MODEL.top + (wanted - bandH)) * k + 0.06;
+      const capTop = accent ? new THREE.Color(accent) : new THREE.Color(jarColor).multiplyScalar(0.55);
+      loadJar()
+        .then((model) => {
+          if (disposed) return;
+          const root = model.clone(true);
+          root.scale.setScalar(k);
+          root.traverse((o) => {
+            const mesh = o as THREE.Mesh;
+            if (!mesh.isMesh) return;
+            const geo = mesh.geometry.clone();
+            const pos = geo.getAttribute('position');
+            for (let i = 0; i < pos.count; i++) pos.setY(i, mapY(pos.getY(i)));
+            pos.needsUpdate = true;
+            geo.computeBoundingSphere();
+            mesh.geometry = geo;
+            mesh.material = mesh.name.startsWith('Label') ? labelMat : mesh.name.startsWith('Bottle') ? body : capMat;
+          });
+          root.scale.setScalar(k);
+          group.add(root);
+          modelReady = true;
+          snap();
+        })
+        .catch(() => {
+          // the model could not be loaded: the drawn outline of a tub instead
+          if (disposed) return;
+          const [w0, w1] = TUB.wall;
+          const wallLen = w1 - w0;
+          const my = (y: number) => (y <= w0 ? y : y >= w1 ? y + (labelH - wallLen) : w0 + ((y - w0) * labelH) / wallLen);
+          const tp = TUB.body.map(([r, y]) => new THREE.Vector2(r, my(y)));
+          tp.push(new THREE.Vector2(0, my(TUB.lid.y0)));
+          group.add(new THREE.Mesh(new THREE.LatheGeometry(tp, 160), body));
+          const lp = [new THREE.Vector2(0, my(TUB.lid.y0)), new THREE.Vector2(TUB.lid.r, my(TUB.lid.y0)), new THREE.Vector2(TUB.lid.r, my(TUB.lid.y1)), new THREE.Vector2(0, my(TUB.lid.y1))];
+          group.add(new THREE.Mesh(new THREE.LatheGeometry(lp, 128), new THREE.MeshPhysicalMaterial({ color: capTop, roughness: 0.5 })));
+          wrapBand(TUB.wallR + 0.004, my(w0));
+          modelReady = true;
+          snap();
+        });
+    } else if (kind === 'jar') {
+      // the small jar model: its label band stretched to the label's height (everything above it moves up by the same amount)
+      const M = SMALL_JAR_MODEL;
+      const k = 1 / M.labelR;
+      const bandH = (M.labelY1 - M.labelY0) * k;
+      const mapY = (y: number) => {
+        const u = (y - M.bottom) * k;
+        const lo = (M.labelY0 - M.bottom) * k;
+        const hi = (M.labelY1 - M.bottom) * k;
+        return u <= lo ? u : u >= hi ? u + (labelH - bandH) : lo + ((u - lo) * labelH) / bandH;
+      };
+      total = (M.top - M.bottom) * k + (labelH - bandH) + 0.06;
+      loadSmallJar()
+        .then((model) => {
+          if (disposed) return;
+          const root = model.clone(true);
+          root.updateMatrixWorld(true);
+          root.traverse((o) => {
+            const mesh = o as THREE.Mesh;
+            if (!mesh.isMesh) return;
+            const geo = mesh.geometry.clone();
+            const pos = geo.getAttribute('position');
+            const v = new THREE.Vector3();
+            const toWorld = mesh.matrixWorld;
+            for (let i = 0; i < pos.count; i++) {
+              v.fromBufferAttribute(pos, i).applyMatrix4(toWorld);
+              pos.setXYZ(i, v.x * k, mapY(v.y), v.z * k);
+            }
+            pos.needsUpdate = true;
+            geo.deleteAttribute('normal');
+            geo.computeVertexNormals();
+            geo.computeBoundingSphere();
+            mesh.geometry = geo;
+            mesh.matrix.identity();
+            mesh.position.set(0, 0, 0);
+            mesh.rotation.set(0, 0, 0);
+            mesh.scale.set(1, 1, 1);
+            mesh.matrixAutoUpdate = true;
+            mesh.parent?.remove(mesh);
+            mesh.rotation.y = (SMALL_JAR_MODEL.turn * Math.PI) / 180;
+            group.add(mesh);
+            if (mesh.name.startsWith('Label')) {
+              smallLabel = mesh;
+              mesh.material = labelMat;
+            } else {
+              mesh.material = new THREE.MeshPhysicalMaterial({ color: new THREE.Color(jarColor), roughness: 0.45, clearcoat: 0.2, clearcoatRoughness: 0.4 });
+            }
+          });
+          api.current?.setWrap(wrapRef.current);
+          modelReady = true;
+          snap();
+        })
+        .catch(() => undefined);
     } else {
       // only the tablet bottle has the real bottle's base; the tub and the jar keep their own
       const bottle = kind === 'bottle';
@@ -492,31 +643,121 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
     raf = requestAnimationFrame(loop);
 
     const textures: THREE.Texture[] = [];
-    const texOf = (canvas: HTMLCanvasElement) => {
+    const texOf = (face: HTMLCanvasElement, model = false) => {
+      let canvas = face;
+      if (model) {
+        // the model's picture is a square with the bag's face in one box: draw the label into that box
+        const S = 2048;
+        const { x0, x1, y0, y1 } = POUCH_MODEL.uv;
+        canvas = document.createElement('canvas');
+        canvas.width = S;
+        canvas.height = S;
+        const cx = canvas.getContext('2d')!;
+        cx.drawImage(face, 0, 0, face.width, face.height, x0 * S, y0 * S, (x1 - x0) * S, (y1 - y0) * S);
+      }
       const t = new THREE.CanvasTexture(canvas);
+      t.flipY = !model; // a model's pictures are not flipped
+      t.needsUpdate = true;
       t.colorSpace = THREE.SRGBColorSpace;
       t.anisotropy = renderer.capabilities.getMaxAnisotropy();
       textures.push(t);
       return t;
     };
-    api.current = {
-      setWrap: (canvas) => {
+    snap = () => {
+      if (snapped || !snapRef.current || !modelReady || !wrapRef.current) return;
+      snapped = true;
+      requestAnimationFrame(() => {
+        if (disposed) return;
+        renderer.render(scene, camera);
+        snapRef.current?.(renderer.domElement.toDataURL('image/png'));
+      });
+    };
+    const rawSetWrap = (canvas: HTMLCanvasElement | null) => {
         textures.splice(0).forEach((t) => t.dispose());
         if (bag) {
-          const faces = canvas ? bagFaces(canvas, panels, bag.aspect, jarColor, kind === 'pouch') : null;
-          bag.front.map = faces ? texOf(faces[0]) : null;
-          bag.back.map = faces ? texOf(faces[1]) : null;
+          const faces = canvas ? bagFaces(canvas, panels, bag.aspect, jarColor, kind === 'pouch', !bag.plain) : null;
+          if (bag.atlas) {
+            // one atlas for the whole sachet: the model's own picture with the two faces drawn over its front and back
+            if (faces && bag.original) {
+              const S = 2048;
+              const c = document.createElement('canvas');
+              c.width = S;
+              c.height = S;
+              const cx = c.getContext('2d')!;
+              cx.drawImage(bag.original, 0, 0, S, S);
+              const put = (face: HTMLCanvasElement, box: { x0: number; x1: number; y0: number; y1: number }) => {
+                // the model's picture is upside down: the face goes in flipped
+                const x = box.x0 * S;
+                const y = box.y0 * S;
+                const w = (box.x1 - box.x0) * S;
+                const h = (box.y1 - box.y0) * S;
+                cx.save();
+                cx.translate(x, y + h);
+                cx.scale(1, -1);
+                cx.drawImage(face, 0, 0, face.width, face.height, 0, 0, w, h);
+                cx.restore();
+              };
+              put(faces[0], SACHET_MODEL.front);
+              put(faces[1], SACHET_MODEL.back);
+              const t = new THREE.CanvasTexture(c);
+              t.flipY = false;
+              t.colorSpace = THREE.SRGBColorSpace;
+              t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+              textures.push(t);
+              bag.front.map = t;
+            } else {
+              bag.front.map = null;
+            }
+            bag.front.needsUpdate = true;
+            return;
+          }
+          bag.front.map = faces ? texOf(faces[0], bag.plain) : null;
+          bag.back.map = faces ? texOf(faces[1], bag.plain) : null;
           bag.front.needsUpdate = true;
           bag.back.needsUpdate = true;
+        } else if (kind === 'jar') {
+          // the label's picture goes into the model's atlas, turned on its side: the wrap's width runs down the atlas, its height across
+          if (canvas && smallLabel) {
+            const S = 2048;
+            const c = document.createElement('canvas');
+            c.width = S;
+            c.height = S;
+            const cx = c.getContext('2d')!;
+            cx.fillStyle = '#ffffff';
+            cx.fillRect(0, 0, S, S);
+            const x0 = SMALL_JAR_MODEL.u0 * S;
+            const x1 = SMALL_JAR_MODEL.u1 * S;
+            // the model is turned, so the picture is shifted down the atlas by the same share of a turn (and wraps round)
+            const shift = (S * SMALL_JAR_MODEL.turn) / 360;
+            for (const ty of [-shift, S - shift]) {
+              cx.setTransform(0, S / canvas.width, (x1 - x0) / canvas.height, 0, x0, ty);
+              cx.drawImage(canvas, 0, 0);
+            }
+            const t = new THREE.CanvasTexture(c);
+            t.flipY = false;
+            t.colorSpace = THREE.SRGBColorSpace;
+            t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            textures.push(t);
+            labelMat.map = t;
+          } else {
+            labelMat.map = null;
+          }
+          labelMat.needsUpdate = true;
         } else {
           labelMat.map = canvas ? texOf(canvas) : null;
           labelMat.needsUpdate = true;
         }
+    };
+    api.current = {
+      setWrap: (c) => {
+        rawSetWrap(c);
+        snap();
       },
     };
     api.current.setWrap(wrapRef.current);
 
     return () => {
+      disposed = true;
       cancelAnimationFrame(raf);
       ro.disconnect();
       io.disconnect();

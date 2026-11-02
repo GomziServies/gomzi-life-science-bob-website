@@ -6,7 +6,8 @@ import { packText } from '../components/LabelParts';
 import { useOrder } from '../state/order';
 import { WHATSAPP } from '../lib/config';
 import { defaultQty } from '../lib/rules';
-import { ProductJar, tintOf } from '../components/ProductJar';
+import { tintOf } from '../components/ProductJar';
+import { Card3D } from '../components/Card3D';
 import { ProductModal } from '../components/ProductModal';
 import type { LogoShift } from '../components/LabelView';
 import { Seals } from '../components/Seals';
@@ -163,7 +164,7 @@ export function HomePage() {
                   return (
                     <article className={`pcard${line ? ' picked' : ''}`} key={p.id}>
                       <div className="pcard-art" style={{ ['--tint' as string]: tintOf(p.id) }}>
-                        <ProductJar className="jar-card" product={p} flavour={flavour} banner={applied?.thumb} />
+                        <Card3D product={p} flavour={flavour} details={labelDetails} banner={applied} />
                         {line && <span className="picked-badge">Added</span>}
                         {p.comingSoon && <span className="soon-badge">Coming soon</span>}
                         <button type="button" className="eye" aria-label={`View ${p.name} details and all flavours`} title="View details" onClick={() => setDetail(p)}>

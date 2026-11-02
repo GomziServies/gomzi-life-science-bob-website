@@ -16,15 +16,27 @@ export function preloadJarScene() {
 const bannerCanvasCache = new Map<string, { canvas: HTMLCanvasElement; dark: boolean }>();
 
 /** The label drawn to a canvas `px` wide, redrawn (after a short pause) whenever the design, logo or details change. */
+/** Label pictures already drawn, so a card that scrolls back into view (or turns from tub to pouch) does not draw its label again. */
+const wrapCache = new Map<string, HTMLCanvasElement>();
+
 export function useWrap(spec: LabelSpec, px: number, enabled = true): HTMLCanvasElement | null {
-  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
   const key = JSON.stringify([spec.product.id, spec.flavour, spec.design, spec.logo?.length, spec.logo?.slice(-24), spec.details, px]);
+  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(() => wrapCache.get(key) ?? null);
   useEffect(() => {
     if (!enabled) return;
+    const cached = wrapCache.get(key);
+    if (cached) {
+      setCanvas(cached);
+      return;
+    }
     let live = true;
     const timer = setTimeout(() => {
       renderCanvas(spec, px)
-        .then((c) => live && setCanvas(c))
+        .then((c) => {
+          if (wrapCache.size > 40) wrapCache.delete(wrapCache.keys().next().value as string);
+          wrapCache.set(key, c);
+          if (live) setCanvas(c);
+        })
         .catch(() => undefined);
     }, 140);
     return () => {
@@ -183,12 +195,14 @@ interface Props {
   logoShift?: LogoShift;
   /** The 3D pack turns by itself (default); off, it holds still on its front until dragged. */
   autoTurn?: boolean;
+  /** Called once with a PNG of the finished 3D pack (see JarScene). */
+  onSnapshot?: (dataUrl: string) => void;
 }
 
 /** The customer's label, either on a 3D jar that flips round or flat, as printed. */
 const NO_SHIFT: LogoShift = { dx: 0, dy: 0 };
 
-export function LabelView({ spec, mode, px = 2600, className, banner, pack = 'jar', logo, logoShift = NO_SHIFT, autoTurn = true }: Props) {
+export function LabelView({ spec, mode, px = 2600, className, banner, pack = 'jar', logo, logoShift = NO_SHIFT, autoTurn = true, onSnapshot }: Props) {
   const [broken, setBroken] = useState(false);
   const show3d = mode === '3d' && !broken;
   const drawn = useWrap(spec, px, show3d && !banner);
@@ -215,7 +229,7 @@ export function LabelView({ spec, mode, px = 2600, className, banner, pack = 'ja
         </div>
       }
     >
-      <JarScene className={className} autoTurn={autoTurn} wrap={banner ? (placed ?? real?.canvas ?? null) : drawn} mm={mm} kind={fitPack(spec.product, pack) === 'jar' ? jarKind(spec.product) : fitPack(spec.product, pack)} jarColor={jarColor} accent={banner ? undefined : c.P} panels={PANELS} onUnsupported={() => setBroken(true)} />
+      <JarScene className={className} autoTurn={autoTurn} onSnapshot={onSnapshot} wrap={banner ? (placed ?? real?.canvas ?? null) : drawn} mm={mm} kind={fitPack(spec.product, pack) === 'jar' ? jarKind(spec.product) : fitPack(spec.product, pack)} jarColor={jarColor} accent={banner ? undefined : c.P} panels={PANELS} onUnsupported={() => setBroken(true)} />
     </Suspense>
   );
 }
