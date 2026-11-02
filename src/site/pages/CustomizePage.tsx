@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { productById, type Product } from '../data/catalog';
-import { useOrder, getBannerDisplayUrl } from '../state/order';
+import { isTeamBanner, TEAM_NAME, useOrder, getBannerDisplayUrl } from '../state/order';
 import { ProductJar } from '../components/ProductJar';
 import { Product3DModal } from '../components/Product3DModal';
 import { preloadJarScene } from '../components/LabelView';
@@ -107,6 +107,8 @@ export function CustomizePage() {
                       <img src={bannerPic} alt={`${p.name} banner`} />
                       <span className="thumb-3d-tag">👁 3D</span>
                     </>
+                  ) : isTeamBanner(banner) ? (
+                    <span className="team-thumb">Made with<br />{TEAM_NAME}</span>
                   ) : (
                     'No banner yet'
                   )}
@@ -127,7 +129,7 @@ export function CustomizePage() {
                   <span>{l.flavour} · {l.quantity} {p.unit}</span>
                   <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
                     {banner ? (
-                      <span className="badge done">Banner saved ({banner.origin === 'ai' ? 'AI' : 'template'})</span>
+                      <span className="badge done">{isTeamBanner(banner) ? `Made with ${TEAM_NAME}` : `Banner saved (${banner.origin === 'ai' ? 'AI' : 'template'})`}</span>
                     ) : (
                       <span className="badge">Pending</span>
                     )}

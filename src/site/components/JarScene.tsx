@@ -258,10 +258,10 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
       onUnsupported?.();
       return;
     }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    // drawn at 2 to 3 times the screen's size and scaled down, so edges and small print stay sharp
+    renderer.setPixelRatio(Math.min(Math.max(window.devicePixelRatio || 1, 2), snapRef.current ? 2.5 : 3));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMapping = THREE.NoToneMapping; // the colours of the label are shown as they were printed
     renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;touch-action:pan-y;cursor:grab';
     el.appendChild(renderer.domElement);
 
@@ -269,8 +269,10 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
     const pmrem = new THREE.PMREMGenerator(renderer);
     const room = new RoomEnvironment();
     scene.environment = pmrem.fromScene(room, 0.04).texture;
-    scene.environmentIntensity = 0.55;
-    const key = new THREE.DirectionalLight(0xffffff, 1.1);
+    scene.environmentIntensity = 0.9;
+    // soft, even light from every side: no hard shading and no shadow side
+    scene.add(new THREE.AmbientLight(0xffffff, 1.1));
+    const key = new THREE.DirectionalLight(0xffffff, 0.3);
     key.position.set(2.5, 4, 5);
     scene.add(key);
 
@@ -283,10 +285,11 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
     const group = new THREE.Group();
     scene.add(group);
 
-    const body = new THREE.MeshPhysicalMaterial({ color: jarColor, roughness: 0.5, clearcoat: 0.15, clearcoatRoughness: 0.5 });
+    const body = new THREE.MeshPhysicalMaterial({ color: jarColor, roughness: 0.7, clearcoat: 0, envMapIntensity: 0.8 });
     const capColor = isTub && accent ? new THREE.Color(accent) : new THREE.Color(jarColor).multiplyScalar(0.55);
-    const capMat = new THREE.MeshPhysicalMaterial({ color: capColor, roughness: 0.5, metalness: 0, clearcoat: 0.1, clearcoatRoughness: 0.5 });
-    const labelMat = new THREE.MeshPhysicalMaterial({ roughness: 0.6, clearcoat: 0.1, clearcoatRoughness: 0.6, color: 0xffffff });
+    const capMat = new THREE.MeshPhysicalMaterial({ color: capColor, roughness: 0.7, metalness: 0, clearcoat: 0, envMapIntensity: 0.8 });
+    // the label is not lit: it shows exactly the picture, with no shadow and no shine
+    const labelMat = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
     // the label, wrapped right round; the middle of the picture faces the front
     const wrapBand = (radius: number, y: number) => {
       const band = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, labelH, 192, 1, true, Math.PI, Math.PI * 2), labelMat);
@@ -300,13 +303,13 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
     let modelReady = !(kind === 'pouch' || kind === 'sachet' || kind === 'tub' || kind === 'jar');
     let snapped = false;
     let snap = () => undefined as void;
-    let bag: { front: THREE.MeshPhysicalMaterial; back: THREE.MeshPhysicalMaterial; aspect: number; plain?: boolean; atlas?: boolean; original?: CanvasImageSource | null } | null = null;
+    let bag: { front: THREE.MeshBasicMaterial; back: THREE.MeshBasicMaterial; aspect: number; plain?: boolean; atlas?: boolean; original?: CanvasImageSource | null } | null = null;
 
     if (kind === 'pouch') {
       // the pouch model, scaled to the pouch's size; its front and back faces take the label
       const bh = 240 / R;
       const k = bh / POUCH_MODEL.h;
-      const front = new THREE.MeshPhysicalMaterial({ roughness: 0.45, clearcoat: 0.15, clearcoatRoughness: 0.5, color: 0xffffff });
+      const front = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
       const back = front.clone();
       bag = { front, back, aspect: (POUCH_MODEL.uv.x1 - POUCH_MODEL.uv.x0) / (POUCH_MODEL.uv.y1 - POUCH_MODEL.uv.y0), plain: true };
       total = bh + 0.06;
@@ -334,7 +337,7 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
       // the sachet model: one mesh with one picture atlas; the atlas is drawn from the two faces of the label
       const bh = 110 / R;
       const k = bh / SACHET_MODEL.h;
-      const atlas = new THREE.MeshPhysicalMaterial({ roughness: 0.45, clearcoat: 0.15, clearcoatRoughness: 0.5, color: 0xffffff, side: THREE.DoubleSide });
+      const atlas = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, toneMapped: false });
       bag = { front: atlas, back: atlas, aspect: SACHET_MODEL.w / SACHET_MODEL.h, plain: true, atlas: true };
       total = bh + 0.06;
       loadSachet()
@@ -347,10 +350,6 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
             if (!mesh.isMesh) return;
             const m = mesh.material as THREE.MeshStandardMaterial;
             original = (m.map?.image as CanvasImageSource) ?? null;
-            const n = m.normalMap;
-            if (n) {
-              atlas.normalMap = n;
-            }
             mesh.material = atlas;
           });
           bag!.original = original;
@@ -454,7 +453,7 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
               smallLabel = mesh;
               mesh.material = labelMat;
             } else {
-              mesh.material = new THREE.MeshPhysicalMaterial({ color: new THREE.Color(jarColor), roughness: 0.45, clearcoat: 0.2, clearcoatRoughness: 0.4 });
+              mesh.material = new THREE.MeshPhysicalMaterial({ color: new THREE.Color(jarColor), roughness: 0.7, clearcoat: 0, envMapIntensity: 0.8 });
             }
           });
           api.current?.setWrap(wrapRef.current);
@@ -652,6 +651,15 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
         canvas.height = S;
         const cx = canvas.getContext('2d')!;
         cx.drawImage(face, 0, 0, face.width, face.height, x0 * S, y0 * S, (x1 - x0) * S, (y1 - y0) * S);
+        // beyond the face the picture's own edge is carried on (not left empty), so the bag's curved edges show no streaks
+        const bx0 = Math.round(x0 * S);
+        const bx1 = Math.round(x1 * S);
+        const by0 = Math.round(y0 * S);
+        const by1 = Math.round(y1 * S);
+        cx.drawImage(canvas, bx0, by0, bx1 - bx0, 1, bx0, 0, bx1 - bx0, by0);
+        cx.drawImage(canvas, bx0, by1 - 1, bx1 - bx0, 1, bx0, by1, bx1 - bx0, S - by1);
+        cx.drawImage(canvas, bx0, 0, 1, S, 0, 0, bx0, S);
+        cx.drawImage(canvas, bx1 - 1, 0, 1, S, bx1, 0, S - bx1, S);
       }
       const t = new THREE.CanvasTexture(canvas);
       t.flipY = !model; // a model's pictures are not flipped

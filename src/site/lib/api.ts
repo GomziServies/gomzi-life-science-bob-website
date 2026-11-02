@@ -88,9 +88,9 @@ export async function submitInquiry(customer: Customer, cart: CartLine[], banner
       pack_kg: product.unit === 'kg' ? (line.packKg ?? 1) : undefined,
       origin: banner.origin,
       template_slug: banner.templateSlug ?? '',
-      preview_url: banner.previewUrl,
-      pdf_url: banner.pdfUrl,
-      json_url: banner.jsonUrl,
+      preview_url: banner.origin === 'graphics_team' ? undefined : banner.previewUrl,
+      pdf_url: banner.origin === 'graphics_team' ? undefined : banner.pdfUrl,
+      json_url: banner.origin === 'graphics_team' ? undefined : banner.jsonUrl,
     };
   });
 

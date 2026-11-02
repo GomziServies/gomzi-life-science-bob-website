@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { CATALOG, GROUPS, type GroupId, type Product } from '../data/catalog';
 import { FAQ, MADE_TO_ORDER, PACK_SIZES } from '../data/content';
 import { packText } from '../components/LabelParts';
-import { useOrder } from '../state/order';
+import { isTeamBanner, teamBanner, useOrder } from '../state/order';
 import { WHATSAPP } from '../lib/config';
 import { defaultQty } from '../lib/rules';
 import { tintOf } from '../components/ProductJar';
@@ -71,7 +71,7 @@ export function HomePage() {
     targets.forEach((t) => io.observe(t));
     return () => io.disconnect();
   }, []);
-  const { cart, customer, addToCart, removeFromCart, setFlavour, setPack } = useOrder();
+  const { cart, banners, customer, addToCart, removeFromCart, setFlavour, setPack, setBanner, clearBanner } = useOrder();
   const nav = useNavigate();
   // a gallery banner picked in the hero: add the product to the order and open that banner in the editor (the OTP step comes when they save)
   const editBanner = (productId: string, templateSlug: string) => {
@@ -88,6 +88,16 @@ export function HomePage() {
   };
   const labelDetails = { brand: customer.brandName, phone: customer.phone, email: customer.email, address: customer.address, city: customer.city, pincode: customer.pincode };
   const lineOf = (id: string) => cart.find((l) => l.productId === id);
+  // a customer who likes none of the labels leaves it to the design team: the product goes into the inquiry marked "Made by Parpics team"
+  const teamOf = (id: string) => isTeamBanner(banners[id]);
+  const toggleTeam = (product: Product, flavour: string) => {
+    if (teamOf(product.id)) {
+      clearBanner(product.id);
+      return;
+    }
+    if (!lineOf(product.id)) addToCart({ productId: product.id, flavour, quantity: defaultQty(product, cart), packKg: packs[product.id] ?? 1 });
+    setBanner(product.id, teamBanner());
+  };
   const cards = (g: GroupId | 'all') => CATALOG.filter((p) => (g === 'all' || p.group === g) && !p.hidden);
   const tabs: [Tab, string, number][] = [
     ['all', 'All', cards('all').length],
@@ -124,7 +134,7 @@ export function HomePage() {
             <Seals />
             <p className="hero-fine">5-day dispatch applies to ready formulations in stock once your label is approved and the order is confirmed. Custom formulations are scheduled once you approve the sample.</p>
           </div>
-          <HeroStage details={labelDetails} logo={logo} onLogo={setLogo} onTry={(t) => openEditor(t.productId)} onEdit={editBanner} onBanner={setApplied} shift={shift} onShift={setShift} />
+          <HeroStage details={labelDetails} logo={logo} onLogo={setLogo} onTry={(t) => openEditor(t.productId)} onEdit={editBanner} onBanner={setApplied} shift={shift} onShift={setShift} teamOf={teamOf} onTeam={(id) => toggleTeam(CATALOG.find((x) => x.id === id)!, picked[id] ?? CATALOG.find((x) => x.id === id)!.flavours[0])} />
         </div>
         <div className="wrap facts">
           <div className="fact"><b>50 kg</b>minimum order for protein</div>
@@ -288,6 +298,8 @@ export function HomePage() {
           shift={shift}
           onShift={setShift}
           onEdit={(slug) => editBanner(detail.id, slug)}
+          team={teamOf(detail.id)}
+          onTeam={() => toggleTeam(detail, picked[detail.id] ?? detail.flavours[0])}
         />
       )}
       {tryStart && <TryLabel start={tryStart} logo={logo} onLogo={setLogo} onClose={() => setTryStart(null)} />}

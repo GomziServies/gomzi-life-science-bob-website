@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CATALOG, type Product } from '../data/catalog';
 import { PACK_SIZES } from '../data/content';
 import { cartIssues, minOf, stepOf, stockOf } from '../lib/rules';
-import { useOrder, getBannerDisplayUrl, type Customer } from '../state/order';
+import { isTeamBanner, TEAM_NAME, useOrder, getBannerDisplayUrl, type Customer } from '../state/order';
 import { DEMO_OTP, DEMO_OTP_CODE, sendOtp, verifyOtp } from '../lib/api';
 import { ProductJar } from '../components/ProductJar';
 import { Product3DModal } from '../components/Product3DModal';
@@ -184,7 +184,24 @@ export function DetailsPage() {
                           </button>
                         </div>
                         <span className="muted">per {p.unit}</span>
-                        {banner ? (
+                        {isTeamBanner(banner) ? (
+                          <div className="applied-pill">
+                            <span className="badge done team">✓ Made with {TEAM_NAME}</span>
+                            <button
+                              type="button"
+                              className="linkbtn mini-edit-link"
+                              onClick={() =>
+                                nav(
+                                  `/shop/customize/${p.id}?returnTo=${encodeURIComponent(
+                                    `/shop/details?preview=${p.id}`
+                                  )}`
+                                )
+                              }
+                            >
+                              Design it myself
+                            </button>
+                          </div>
+                        ) : banner ? (
                           <div className="applied-pill">
                             <span className="badge done">✓ Banner Applied</span>
                             <button

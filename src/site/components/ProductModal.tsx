@@ -4,7 +4,7 @@ import { BROCHURE, PACK_SIZES } from '../data/content';
 import { listGalleryBanners, type GalleryBanner } from '../lib/api';
 import { type Details } from '../lib/labelArt';
 import { LabelView, type LogoShift } from './LabelView';
-import { LogoPlacement, PackToggle, packText, type Pack } from './LabelParts';
+import { LogoPlacement, PackToggle, TeamChoice, packText, type Pack } from './LabelParts';
 import { ProductJar, ownDesign, tintOf } from './ProductJar';
 
 interface Props {
@@ -27,10 +27,13 @@ interface Props {
   onShift: (shift: LogoShift) => void;
   /** Open this label in the editor for the product (no logo needed yet: it is added there). */
   onEdit: (slug: string) => void;
+  /** The customer left this product's label to the design team; the way to leave it (or take it back). */
+  team: boolean;
+  onTeam: () => void;
 }
 
 /** One product in full: its jar, pack types, label size and every flavour to choose from. */
-export function ProductModal({ product, flavour, inCart, banner, pack, onPack, onFlavour, onAdd, onRemove, onClose, details, onEdit, logo, onLogo, shift, onShift }: Props) {
+export function ProductModal({ product, flavour, inCart, banner, pack, onPack, onFlavour, onAdd, onRemove, onClose, details, onEdit, team, onTeam, logo, onLogo, shift, onShift }: Props) {
   const [labels, setLabels] = useState<GalleryBanner[] | null>(null);
   const [label, setLabel] = useState<GalleryBanner | null>(null);
   const [shape, setShape] = useState<Pack>('jar');
@@ -133,6 +136,7 @@ export function ProductModal({ product, flavour, inCart, banner, pack, onPack, o
             </>
           )}
           {labels && labels.length > 0 && <LogoPlacement logo={logo} onLogo={onLogo} shift={shift} onShift={onShift} />}
+          {labels && labels.length > 0 && <TeamChoice picked={team} onPick={onTeam} />}
           <div className="modal-actions">
             {product.comingSoon ? (
               <button type="button" className="btn btn-ghost" disabled>Coming soon</button>

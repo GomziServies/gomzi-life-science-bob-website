@@ -1,7 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { productById } from '../data/catalog';
 
-export type BannerOrigin = 'template' | 'ai' | 'blank';
+export type BannerOrigin = 'template' | 'ai' | 'blank' | 'graphics_team';
+
+/** The name of the design team a customer can leave their label to. */
+export const TEAM_NAME = 'Parpics team';
 
 export interface CartLine {
   productId: string;
@@ -37,6 +40,10 @@ export function getBannerDisplayUrl(banner: Banner | undefined | null): string {
   }
   return banner.thumbnail || banner.previewUrl || '';
 }
+
+/** A label the customer leaves to the design team: it has no picture or files yet. */
+export const teamBanner = (): Banner => ({ origin: 'graphics_team', previewUrl: '', pdfUrl: '', jsonUrl: '', savedAt: Date.now() });
+export const isTeamBanner = (b: Banner | undefined | null) => b?.origin === 'graphics_team';
 
 export interface Customer {
   fullName: string;
@@ -81,6 +88,7 @@ interface OrderApi extends OrderState {
   setPack: (productId: string, packKg: number) => void;
   removeFromCart: (productId: string) => void;
   setBanner: (productId: string, banner: Banner) => void;
+  clearBanner: (productId: string) => void;
   setCustomer: (patch: Partial<Customer>) => void;
   reset: () => void;
   allBannersDone: boolean;
@@ -112,6 +120,11 @@ export function OrderProvider({ children }: { children: ReactNode }) {
           return { ...s, cart: s.cart.filter((l) => l.productId !== productId), banners };
         }),
       setBanner: (productId, banner) => setState((s) => ({ ...s, banners: { ...s.banners, [productId]: banner } })),
+      clearBanner: (productId) =>
+        setState((s) => {
+          const { [productId]: _gone, ...banners } = s.banners;
+          return { ...s, banners };
+        }),
       setCustomer: (patch) => setState((s) => ({ ...s, customer: { ...s.customer, ...patch } })),
       reset: () => setState({ cart: [], banners: {}, customer: EMPTY_CUSTOMER }),
       allBannersDone: state.cart.length > 0 && state.cart.every((l) => state.banners[l.productId]),

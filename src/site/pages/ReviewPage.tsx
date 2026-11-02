@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { productById } from '../data/catalog';
-import { useOrder } from '../state/order';
+import { isTeamBanner, TEAM_NAME, useOrder } from '../state/order';
 import { submitInquiry } from '../lib/api';
 import { ProductJar } from '../components/ProductJar';
 import { Stepper } from '../components/Stepper';
@@ -51,7 +51,7 @@ export function ReviewPage() {
               return (
                 <div className="prow review-row" key={l.productId}>
                   <ProductJar className="jar-sm" product={p} flavour={l.flavour} brand={customer.brandName} />
-                  <div className="thumb wide">{banner ? <img src={banner.thumbnail || banner.previewUrl} alt={`${p.name} label`} /> : null}</div>
+                  <div className="thumb wide">{isTeamBanner(banner) ? <span className="team-thumb">Made with<br />{TEAM_NAME}</span> : banner ? <img src={banner.thumbnail || banner.previewUrl} alt={`${p.name} label`} /> : null}</div>
                   <div className="grow">
                     <h3 style={{ margin: 0 }}>{p.name}</h3>
                     <span className="muted">{l.flavour !== 'Standard' ? `${l.flavour} · ` : ''}{l.quantity} {p.unit}</span>

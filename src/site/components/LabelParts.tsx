@@ -125,3 +125,20 @@ export function DesignPicks({ product, flavour, designs, current, onPick, detail
     </div>
   );
 }
+
+/** A small line under the label pickers for a customer who likes none of the labels: one tap leaves it to the design team. */
+export function TeamChoice({ picked, onPick, className }: { picked: boolean; onPick: () => void; className?: string }) {
+  return (
+    <div className={'teamchoice' + (picked ? ' picked' : '') + (className ? ' ' + className : '')}>
+      <span>{picked ? 'Added to your inquiry' : 'No label you like?'}</span>
+      <button type="button" aria-pressed={picked} onClick={onPick}>
+        {picked ? '✓ Made with Parpics team' : 'Made with Parpics team'}
+      </button>
+      {picked && (
+        <button type="button" className="teamchoice-undo" onClick={onPick} aria-label="Take it back">
+          Undo
+        </button>
+      )}
+    </div>
+  );
+}

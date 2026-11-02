@@ -1163,3 +1163,12 @@ h2 { font-size: clamp(2rem, 3.4vw, 2.9rem); line-height: 1.08; }
 .card3d-packs button:disabled { opacity: .45; cursor: default; }
 .card3d-packs button[aria-pressed='true'] { background: #111; color: #fff; }
 .pcard-art .eye { z-index: 4; }
+
+/* a small line for a customer who likes none of the labels */
+.teamchoice { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line, #e6e9de); font-size: .78rem; color: var(--muted); }
+.teamchoice button { border: 1px solid var(--line-2, #cfd6c0); background: #fff; color: var(--ink, #111); border-radius: 999px; padding: 5px 12px; font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+.teamchoice button:hover { border-color: #111; }
+.teamchoice.picked > button:first-of-type { background: #111; border-color: #111; color: #fff; }
+.teamchoice .teamchoice-undo { border: 0; background: transparent; color: var(--muted); text-decoration: underline; padding: 5px 4px; font-weight: 600; }
+.team-thumb { display: grid; place-items: center; width: 100%; height: 100%; min-height: 54px; text-align: center; font-size: .74rem; font-weight: 800; line-height: 1.25; color: var(--brand-ink, #3d5200); background: #f1f8e0; border-radius: 8px; }
+.badge.team { background: #111; color: #fff; }

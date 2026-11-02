@@ -4,7 +4,7 @@ import { listGalleryBanners, type GalleryBanner } from '../lib/api';
 import { designCount, type Details } from '../lib/labelArt';
 import { ProductJar, ownDesign } from './ProductJar';
 import { LabelView, type LogoShift } from './LabelView';
-import { DesignPicks, LogoBox, LogoPlacement, PackToggle, type Pack } from './LabelParts';
+import { DesignPicks, LogoBox, LogoPlacement, PackToggle, TeamChoice, type Pack } from './LabelParts';
 
 // The box starts with these products; the jar shows one of them, a different one each time the page opens
 const LIST = ['wp57', 'plant', 'yeast', 'cre', 'bcaa', 'pre'];
@@ -35,10 +35,13 @@ interface Props {
   onEdit: (productId: string, templateSlug: string) => void;
   /** The banner the customer picked (null when none is picked): the range below shows it on every product. */
   onBanner?: (banner: GalleryBanner | null) => void;
+  /** Which products are left to the design team, and the way to leave one (or take it back). */
+  teamOf: (productId: string) => boolean;
+  onTeam: (productId: string) => void;
 }
 
 /** The top of the page: a 3D jar that flips round wearing one of five labels, with the logo upload and the way into "Try it". */
-export function HeroStage({ details, logo, onLogo, shift, onShift, onTry, onEdit, onBanner }: Props) {
+export function HeroStage({ details, logo, onLogo, shift, onShift, onTry, onEdit, onBanner, teamOf, onTeam }: Props) {
   const [shown] = useState(() => pick(LIST));
   const [chosen, setChosen] = useState<string | null>(null);
   const [designs, setDesigns] = useState(() => designsFor(shown));
@@ -127,6 +130,7 @@ export function HeroStage({ details, logo, onLogo, shift, onShift, onTry, onEdit
                 <div className="lbox-actions">
                   <button type="button" className="btn btn-lime btn-sm" disabled={!banner} onClick={() => banner && onEdit(product.id, banner.slug)}>Make with my logo</button>
                 </div>
+                <TeamChoice picked={teamOf(product.id)} onPick={() => onTeam(product.id)} />
               </>
             ) : (
               <>
