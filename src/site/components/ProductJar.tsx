@@ -8,7 +8,7 @@ type Shape = { lid: number[]; neck: number[] | null; body: number[]; L: number[]
 const SHAPES: Record<'tub' | 'small' | 'bottle', Shape> = {
   tub: { lid: [58, 8, 124, 42, 9], neck: [70, 48, 100, 10], body: [28, 56, 184, 236, 30], L: [28, 94, 184, 168] },
   small: { lid: [40, 80, 160, 28, 7], neck: null, body: [30, 104, 180, 180, 16], L: [30, 118, 180, 152] },
-  bottle: { lid: [86, 22, 68, 40, 7], neck: [98, 60, 44, 14], body: [52, 72, 136, 216, 26], L: [52, 108, 136, 150] },
+  bottle: { lid: [70, 20, 100, 36, 8], neck: [76, 52, 88, 28], body: [52, 72, 136, 216, 30], L: [52, 108, 136, 150] },
 };
 
 const TITLES: Record<string, string[]> = {
@@ -138,24 +138,37 @@ export function label(p: Product, flavour: string, brand: string, L: { X: number
   return g;
 }
 
+/** The outline of a body: a plain rounded box, except the tablet bottle, whose wall narrows a little towards a wide, rounded foot like the real bottle. */
+function bodyShape(p: Product, sh: Shape, attrs: string): string {
+  const [bx, by, bw, bh, br] = sh.body;
+  if (p.unit !== 'bottle') return `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="${br}" ${attrs}/>`;
+  const x1 = bx + bw;
+  const y1 = by + bh;
+  const ys = by + bh * 0.78;
+  const t = 5;
+  const rf = 34;
+  const d = `M${bx + br} ${by}H${x1 - br}Q${x1} ${by} ${x1} ${by + br}V${ys}L${x1 - t} ${y1 - rf}Q${x1 - t} ${y1} ${x1 - t - rf} ${y1}H${bx + t + rf}Q${bx + t} ${y1} ${bx + t} ${y1 - rf}L${bx} ${ys}V${by + br}Q${bx} ${by} ${bx + br} ${by}Z`;
+  return `<path d="${d}" ${attrs}/>`;
+}
+
 export function jarSvg(p: Product, flavour: string, brand: string, id: string, banner?: string): string {
   const sh = SHAPES[p.unit === 'kg' ? 'tub' : p.unit === 'jar' || p.unit === 'sachet' ? 'small' : 'bottle'];
   const { c } = lookOf(p.id);
   const light = lum(c.S) > 0.5;
   const jar = light ? '#F1F1EE' : '#151515';
   const lidC = light ? '#E3E3DF' : '#0D0D0D';
-  const [bx, by, bw, bh, br] = sh.body;
+  const [, by, bw, bh] = sh.body;
   const [X, Y, W, H] = sh.L;
   const [lx, ly, lw, lh, lr] = sh.lid;
   let s = `<svg viewBox="0 0 240 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(p.name)} jar">`;
-  s += `<defs><clipPath id="${id}c"><rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="${br}"/></clipPath><linearGradient id="${id}g" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".26"/><stop offset=".16" stop-color="#fff" stop-opacity=".07"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset=".8" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient></defs>`;
+  s += `<defs><clipPath id="${id}c">${bodyShape(p, sh, '')}</clipPath><linearGradient id="${id}g" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".26"/><stop offset=".16" stop-color="#fff" stop-opacity=".07"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset=".8" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient></defs>`;
   s += `<ellipse cx="120" cy="${by + bh + 3}" rx="${bw * 0.46}" ry="6" fill="#000" opacity=".2"/><rect x="${lx}" y="${ly}" width="${lw}" height="${lh}" rx="${lr}" fill="${lidC}"/>`;
   for (let i = 1; i < 5; i++) s += `<rect x="${lx + 3}" y="${ly + (lh * i) / 5}" width="${lw - 6}" height="1.2" fill="${light ? '#000' : '#fff'}" opacity=".07"/>`;
   if (sh.neck) {
     const [nx, ny, nw, nh] = sh.neck;
     s += `<rect x="${nx}" y="${ny}" width="${nw}" height="${nh}" fill="${lidC}"/>`;
   }
-  s += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="${br}" fill="${jar}"/><g clip-path="url(#${id}c)">${banner ? `<image href="${esc(banner)}" x="${X}" y="${Y}" width="${W}" height="${H}" preserveAspectRatio="xMidYMid slice"/>` : label(p, flavour, brand, { X, Y, W, H }, id)}</g><rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="${br}" fill="url(#${id}g)"/>`;
+  s += `${bodyShape(p, sh, `fill="${jar}"`)}<g clip-path="url(#${id}c)">${banner ? `<image href="${esc(banner)}" x="${X}" y="${Y}" width="${W}" height="${H}" preserveAspectRatio="xMidYMid slice"/>` : label(p, flavour, brand, { X, Y, W, H }, id)}</g>${bodyShape(p, sh, `fill="url(#${id}g)"`)}`;
   return s + '</svg>';
 }
 

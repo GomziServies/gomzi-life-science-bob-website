@@ -27,11 +27,32 @@ const SHAPE = {
   // like a real protein tub: a tall body, a big rounded shoulder, a narrow neck and a smaller lid
   tub: { rb: 0.26, shoulder: 0.66, neck: 0.62, neckH: 0.12, cap: 0.68, capH: 0.44, ribs: 72 },
   jar: { rb: 0.12, shoulder: 0.15, neck: 0.9, neckH: 0, cap: 0.95, capH: 0.46, ribs: 84 },
-  bottle: { rb: 0.1, shoulder: 0.42, neck: 0.58, neckH: 0, cap: 0.64, capH: 0.55, ribs: 56 },
+  bottle: { rb: 0.1, shoulder: 0.5, neck: 0.66, neckH: 0.2, cap: 0.76, capH: 0.5, ribs: 56 },
 } as const;
 
 /** A jar is shown at its real size next to the others: nothing is drawn smaller than this height (mm) in the frame, so a protein tub looks big and a bottle looks small. */
 const FRAME_MM = 150;
+
+/**
+ * The bottom of a tablet bottle, like the real black bottle: a wide, softly rounded base corner, and the wall narrowing a little towards the
+ * foot instead of ending in a hard edge. From the centre of the base out to the wall at height `top`.
+ */
+function bottleBase(wallR: number, corner: number, inset: number, top: number): THREE.Vector2[] {
+  const pts: THREE.Vector2[] = [new THREE.Vector2(0, 0)];
+  const rc = wallR - inset - corner;
+  pts.push(new THREE.Vector2(rc, 0));
+  for (let i = 1; i <= 12; i++) {
+    const a = (i / 12) * (Math.PI / 2);
+    pts.push(new THREE.Vector2(rc + corner * Math.sin(a), corner - corner * Math.cos(a)));
+  }
+  // the wall eases out from the rounded corner up to its full width
+  for (let i = 1; i <= 8; i++) {
+    const t = i / 8;
+    const k = t * t * (3 - 2 * t);
+    pts.push(new THREE.Vector2(wallR - inset + inset * k, corner + (top - corner) * t));
+  }
+  return pts;
+}
 
 /** One face of a bag (a stand-up pouch or a sachet): a sheet that puffs out in the middle and is flat along its heat-sealed top and bottom. */
 function bagGeometry(w: number, h: number, depth: number, side: 1 | -1, pouch = false) {
@@ -254,11 +275,13 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
       wrapBand(TUB.wallR + 0.004, mapY(w0));
       total = y1 + 0.06;
     } else {
-      const rb = s.rb;
-      const bottomGap = rb + 0.04;
+      // only the tablet bottle has the real bottle's base; the tub and the jar keep their own
+      const bottle = kind === 'bottle';
+      const rb = bottle ? 0.3 : s.rb;
+      const bottomGap = bottle ? rb + 0.14 : rb + 0.04;
       const Hb = labelH + bottomGap + s.shoulder + 0.02;
-      const pts: THREE.Vector2[] = [new THREE.Vector2(0, 0), new THREE.Vector2(1 - rb, 0)];
-      for (let i = 1; i <= 8; i++) {
+      const pts: THREE.Vector2[] = bottle ? bottleBase(1, rb, 0.06, bottomGap) : [new THREE.Vector2(0, 0), new THREE.Vector2(1 - rb, 0)];
+      for (let i = 1; i <= (bottle ? 0 : 8); i++) {
         const a = (i / 8) * (Math.PI / 2);
         pts.push(new THREE.Vector2(1 - rb + rb * Math.sin(a), rb - rb * Math.cos(a)));
       }
