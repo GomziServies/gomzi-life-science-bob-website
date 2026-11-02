@@ -72,9 +72,11 @@ function bagGeometry(w: number, h: number, depth: number, side: 1 | -1, pouch = 
       // a stand-up pouch seen from the side is a wedge: thin at the sealed top, growing steadily thicker down to a full, flat base
       const top = 1 - sealTop;
       const t = Math.min(1, v / top); // 0 at the base, 1 at the top seal
-      halfW = 0.5 * w * (1 - 0.07 * t);
-      const foot = 0.93 + 0.07 * smooth(Math.min(1, v / 0.05));
-      belly = foot * (1 - 0.6 * Math.pow(t, 1.4)) * Math.max(0, Math.min(1, (top - v) / 0.04));
+      halfW = 0.5 * w * (1 - 0.05 * t);
+      const foot = 0.94 + 0.06 * smooth(Math.min(1, v / 0.05));
+      // full and heavy low down, a little smaller through the middle and top, then a short rounded shoulder into the seal
+      const shoulder = smooth(Math.max(0, Math.min(1, (top - v) / 0.09)));
+      belly = foot * (1 - 0.3 * Math.pow(t, 1.8)) * shoulder;
     } else {
       halfW = 0.5 * w;
       belly = smooth(Math.min(1, Math.min(v / 0.14, (1 - v) / 0.14))) * (0.8 + 0.2 * Math.sin(Math.PI * v));
@@ -83,7 +85,7 @@ function bagGeometry(w: number, h: number, depth: number, side: 1 | -1, pouch = 
       const u = i / nx;
       const c = 2 * u - 1;
       // pouch: a flat front that turns sharply into the side wall (a boxy section); sachet: a soft pillow
-      const n = 2.5 + 5.5 * (1 - Math.min(1, v / (1 - sealTop))); // boxy low down, folding in to a lens (the side gusset crease) higher up
+      const n = 4.5 + 4 * (1 - Math.min(1, v / (1 - sealTop))); // boxy low down, folding in to a lens (the side gusset crease) higher up
       const edge = pouch ? Math.pow(Math.max(0, 1 - Math.pow(Math.abs(c), n)), 1 / n) : Math.pow(Math.max(0, 1 - Math.pow(c, 2)), 0.55);
       const z = depth * edge * belly;
       pos.push(c * halfW, v * h, side * z);
