@@ -313,10 +313,28 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
   const api = useRef<{ setWrap: (c: HTMLCanvasElement | null) => void } | null>(null);
   // how close the camera is: 1 is the whole pack in view
   const zoomRef = useRef(1);
+  // where the pack is seen from: moved sideways / up-down (pan) and looked at from above or below (pitch)
+  const panRef = useRef({ x: 0, y: 0 });
+  const pitchRef = useRef(0);
+  // the size of the view at zoom 1 (world units), set when the camera is placed
+  const viewRef = useRef({ h: 1, aspect: 1, frame: 1 });
   const refit = useRef<() => void>(() => undefined);
-  const applyZoom = (z: number) => {
-    const next = Math.min(2.5, Math.max(1, Math.round(z * 100) / 100));
+  const keepPanInside = () => {
+    const z = zoomRef.current;
+    const lim = (viewRef.current.frame * 0.5 * (z - 1)) / z;
+    panRef.current.x = Math.max(-lim, Math.min(lim, panRef.current.x));
+    panRef.current.y = Math.max(-lim, Math.min(lim, panRef.current.y));
+    if (z === 1) panRef.current = { x: 0, y: 0 };
+  };
+  /** Zoom to `z` (1 to 2.5); `nx`, `ny` is the point to zoom towards, from -0.5 to 0.5 across the view (the middle by default). */
+  const applyZoom = (z: number, nx = 0, ny = 0) => {
+    const old = zoomRef.current;
+    const next = Math.min(2.5, Math.max(1, Math.round(z * 1000) / 1000));
+    const k = 1 / old - 1 / next;
+    panRef.current.x += nx * viewRef.current.h * viewRef.current.aspect * k;
+    panRef.current.y -= ny * viewRef.current.h * k;
     zoomRef.current = next;
+    keepPanInside();
     refit.current();
   };
 
@@ -641,11 +659,17 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       const half = Math.tan((camera.fov * Math.PI) / 360);
-      const dist = Math.max((frame * 0.62) / half, (1.35 / half) / camera.aspect) / zoomRef.current;
-      // zooming in moves the camera towards the middle of the pack
+      const dist0 = Math.max((frame * 0.62) / half, (1.35 / half) / camera.aspect);
+      viewRef.current = { h: 2 * half * dist0, aspect: camera.aspect, frame };
+      const dist = dist0 / zoomRef.current;
+      // zooming in moves the camera towards the middle of the pack; the camera can look from above or below (pitch) and be moved sideways (pan)
       const z = zoomRef.current - 1;
-      camera.position.set(0, frame * (0.6 - 0.13 * z), dist);
-      camera.lookAt(0, frame * (0.47 - 0.05 * z), 0);
+      const tx = panRef.current.x;
+      const ty = frame * (0.47 - 0.05 * z) + panRef.current.y;
+      const dy0 = frame * (0.13 - 0.08 * z);
+      const e = pitchRef.current;
+      camera.position.set(tx, ty + dy0 * Math.cos(e) + dist * Math.sin(e), -dy0 * Math.sin(e) + dist * Math.cos(e));
+      camera.lookAt(tx, ty, 0);
       camera.updateProjectionMatrix();
     };
     fit();
@@ -656,27 +680,45 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
     const onWheel = (e: WheelEvent) => {
       if (!zoomable) return;
       const before = zoomRef.current;
-      applyZoom(before * Math.exp(-e.deltaY * 0.002));
+      const box = el.getBoundingClientRect();
+      applyZoom(before * Math.exp(-e.deltaY * 0.002), (e.clientX - box.left) / box.width - 0.5, (e.clientY - box.top) / box.height - 0.5);
       if (zoomRef.current !== before) e.preventDefault();
     };
     el.addEventListener('wheel', onWheel, { passive: false });
-    // two fingers pinch it
+    // two fingers pinch it, and moving them together moves the view
     let pinch = 0;
+    let mid = { x: 0, y: 0 };
     const gap = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    const centre = (t: TouchList) => ({ x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 });
     const onTouchStart = (e: TouchEvent) => {
       pinch = zoomable && e.touches.length === 2 ? gap(e.touches) : 0;
+      if (pinch) mid = centre(e.touches);
     };
     const onTouchMove = (e: TouchEvent) => {
       if (!zoomable || e.touches.length !== 2 || !pinch) return;
       e.preventDefault();
       const now = gap(e.touches);
-      applyZoom(zoomRef.current * (now / pinch));
+      const c = centre(e.touches);
+      const box = el.getBoundingClientRect();
+      applyZoom(zoomRef.current * (now / pinch), (c.x - box.left) / box.width - 0.5, (c.y - box.top) / box.height - 0.5);
+      const per = viewRef.current.h / zoomRef.current / box.height;
+      panRef.current.x -= (c.x - mid.x) * per;
+      panRef.current.y += (c.y - mid.y) * per;
+      keepPanInside();
+      refit.current();
       pinch = now;
+      mid = c;
     };
     el.addEventListener('touchstart', onTouchStart, { passive: true });
     el.addEventListener('touchmove', onTouchMove, { passive: false });
     // double click (or double tap) brings it back
-    const onDouble = () => zoomable && applyZoom(1);
+    const onDouble = () => {
+      if (!zoomable) return;
+      pitchRef.current = 0;
+      applyZoom(1);
+    };
+    const onMenu = (e: Event) => zoomable && e.preventDefault();
+    el.addEventListener('contextmenu', onMenu);
     el.addEventListener('dblclick', onDouble);
 
     // -- the flip: the panels come to the front one by one; dragging turns the jar by hand --
@@ -709,12 +751,23 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
     let dragging = false;
     let resumeAt = 0;
     let lastX = 0;
+    let lastY = 0;
     let lastTime = 0;
+    let panning = false;
+    const touching = new Set<number>();
 
     const down = (e: PointerEvent) => {
+      touching.add(e.pointerId);
+      // a second finger belongs to the pinch, not to turning the pack
+      if (touching.size > 1) {
+        dragging = false;
+        return;
+      }
+      panning = zoomable && (e.shiftKey || e.button !== 0);
       dragging = true;
       velocity = 0;
       lastX = e.clientX;
+      lastY = e.clientY;
       lastTime = performance.now();
       renderer.domElement.setPointerCapture(e.pointerId);
       renderer.domElement.style.cursor = 'grabbing';
@@ -724,13 +777,32 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
       const now = performance.now();
       const dt = Math.max(1, now - lastTime);
       const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastY = e.clientY;
+      if (panning) {
+        // Shift + drag, or the right button, moves the view
+        const per = viewRef.current.h / zoomRef.current / (el.clientHeight || 300);
+        panRef.current.x -= dx * per;
+        panRef.current.y += dy * per;
+        keepPanInside();
+        refit.current();
+        lastX = e.clientX;
+        lastTime = now;
+        return;
+      }
       yaw += dx * 0.009;
+      if (zoomable) {
+        // dragging up or down looks at the pack from below or above
+        pitchRef.current = Math.max(-0.5, Math.min(0.85, pitchRef.current + dy * 0.006));
+        refit.current();
+      }
       // Filtered velocity for smooth release momentum
       velocity = (dx / dt) * 0.14;
       lastX = e.clientX;
       lastTime = now;
     };
-    const up = () => {
+    const up = (e?: PointerEvent) => {
+      if (e) touching.delete(e.pointerId);
       if (!dragging) return;
       dragging = false;
       renderer.domElement.style.cursor = 'grab';
@@ -945,6 +1017,7 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
       el.removeEventListener('touchstart', onTouchStart);
       el.removeEventListener('touchmove', onTouchMove);
       el.removeEventListener('dblclick', onDouble);
+      el.removeEventListener('contextmenu', onMenu);
     };
     // the jar is rebuilt when its shape or colour changes; the label picture is swapped in below
     // eslint-disable-next-line react-hooks/exhaustive-deps
