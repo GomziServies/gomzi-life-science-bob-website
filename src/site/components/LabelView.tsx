@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useId, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { lookOf } from './ProductJar';
 import { lum } from '../data/labelTemplates';
 import { PANELS, jarKind, labelMm, renderCanvas, wrapSvg, type LabelSpec } from '../lib/labelArt';
@@ -178,6 +178,7 @@ export interface BannerLike {
   thumb?: string;
   width?: number;
   height?: number;
+  ownLogo?: boolean;
 }
 
 interface Props {
@@ -197,25 +198,55 @@ interface Props {
   autoTurn?: boolean;
   /** Called once with a PNG of the finished 3D pack (see JarScene). */
   onSnapshot?: (dataUrl: string) => void;
+  /** A ready label is still on its way: nothing is drawn meanwhile (no built-in design is ever shown instead). */
+  waiting?: boolean;
 }
 
 /** The customer's label, either on a 3D jar that flips round or flat, as printed. */
 const NO_SHIFT: LogoShift = { dx: 0, dy: 0 };
 
-export function LabelView({ spec, mode, px = 2600, className, banner, pack = 'jar', logo, logoShift = NO_SHIFT, autoTurn = true, onSnapshot }: Props) {
+export function LabelView({ spec, mode, px = 2600, className, banner, pack = 'jar', logo, logoShift = NO_SHIFT, autoTurn = true, onSnapshot, waiting = false }: Props) {
   const [broken, setBroken] = useState(false);
   const show3d = mode === '3d' && !broken;
-  const drawn = useWrap(spec, px, show3d && !banner);
-  const real = useBannerCanvas(banner?.image, banner?.thumb);
-  const placed = useLogoOnBanner(real?.canvas ?? null, useLogoSlot(banner?.slug), logo, logoShift);
+  // a ready label is always what the pack wears; the drawn design is only for a product that has no ready label at all
+  const ready = !!banner || waiting;
+  const drawn = useWrap(spec, px, show3d && !ready);
+  const lastCanvas = useRef<HTMLCanvasElement | null>(null);
+  const lastKind = useRef<string>('');
+  // only a picture that belongs to the label now wanted counts; one left over from the label before it never shows
+  const realRaw = useBannerCanvas(banner?.image, banner?.thumb);
+  const lowRaw = useBannerCanvas(banner?.thumb);
+  const mine = (r: { url: string } | null) => (r && banner && (r.url === banner.image || r.url === banner.thumb) ? r : null);
+  const real = mine(realRaw) as typeof realRaw;
+  const low = mine(lowRaw) as typeof lowRaw;
+  const shown = real ?? low;
+  const placed = useLogoOnBanner(real?.canvas ?? null, useLogoSlot(banner?.ownLogo ? undefined : banner?.slug), logo, logoShift);
   const { c } = lookOf(spec.product.id, spec.design);
-  const jarColor = banner ? (real?.dark === false ? '#F1F1EE' : '#151515') : lum(c.S) > 0.5 ? '#F1F1EE' : '#151515';
+  const kind3d = fitPack(spec.product, pack) === 'jar' ? jarKind(spec.product) : fitPack(spec.product, pack);
+  // the protein bottle and the jars stay dark, whatever the label's colours; only the tablet bottle follows the label
+  const jarColor = kind3d === 'tub' || kind3d === 'jar' ? '#151515' : banner ? (shown?.dark === false ? '#F1F1EE' : '#151515') : lum(c.S) > 0.5 ? '#F1F1EE' : '#151515';
   const base = labelMm(spec.product);
   
-  const bw = (banner?.width && banner.width > 0) ? banner.width : (real?.canvas?.width || 0);
-  const bh = (banner?.height && banner.height > 0) ? banner.height : (real?.canvas?.height || 0);
+  const bw = (banner?.width && banner.width > 0) ? banner.width : (shown?.canvas?.width || 0);
+  const bh = (banner?.height && banner.height > 0) ? banner.height : (shown?.canvas?.height || 0);
   const mm = (banner && bw > 0 && bh > 0) ? { w: base.w, h: (base.w * bh) / bw } : base;
 
+  // while a new label loads, the pack keeps the label it had; with none yet, a spinner
+  const bannerCanvas = placed ?? real?.canvas ?? low?.canvas ?? null;
+  // a different kind of pack (jar, pouch, sachet) never wears the picture kept from another kind
+  if (lastKind.current !== kind3d) {
+    lastKind.current = kind3d;
+    lastCanvas.current = null;
+  }
+  if (bannerCanvas) lastCanvas.current = bannerCanvas;
+  const wrapCanvas = ready ? (bannerCanvas ?? lastCanvas.current) : drawn;
+  if (ready && show3d && !wrapCanvas) {
+    return (
+      <div className={`lv-loading-placeholder ${className || ''}`}>
+        <div className="lv-spinner" />
+      </div>
+    );
+  }
   if (!show3d) {
     if (banner) return <img className={className ? className + ' lv-flat' : 'lv-flat'} src={banner.image} alt={banner.title ?? ''} />;
     return <FlatLabel spec={spec} className={className ? className + ' lv-flat' : 'lv-flat'} />;
@@ -229,7 +260,7 @@ export function LabelView({ spec, mode, px = 2600, className, banner, pack = 'ja
         </div>
       }
     >
-      <JarScene className={className} autoTurn={autoTurn} onSnapshot={onSnapshot} wrap={banner ? (placed ?? real?.canvas ?? null) : drawn} mm={mm} kind={fitPack(spec.product, pack) === 'jar' ? jarKind(spec.product) : fitPack(spec.product, pack)} jarColor={jarColor} accent={banner ? undefined : c.P} panels={PANELS} onUnsupported={() => setBroken(true)} />
+      <JarScene className={className} autoTurn={autoTurn} onSnapshot={onSnapshot} wrap={wrapCanvas} mm={mm} kind={kind3d} jarColor={jarColor} accent={banner ? undefined : c.P} panels={PANELS} onUnsupported={() => setBroken(true)} />
     </Suspense>
   );
 }

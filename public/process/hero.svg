@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" fill="none" role="img" aria-label="Three steps: formulate, label and dispatch">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="70%"><stop offset="0" stop-color="#fcfef5"/><stop offset="1" stop-color="#e1edb6"/></radialGradient>
+    <linearGradient id="liq" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b6dc4a"/><stop offset="1" stop-color="#7da318"/></linearGradient>
+  </defs>
+  <rect width="640" height="400" rx="48" fill="url(#bg)"/>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <rect x="34" y="70" width="168" height="250" rx="26" fill="#fff" stroke="#c9dc86" stroke-width="2"/>
+    <rect x="236" y="70" width="168" height="250" rx="26" fill="#fff" stroke="#c9dc86" stroke-width="2"/>
+    <rect x="438" y="70" width="168" height="250" rx="26" fill="#fff" stroke="#c9dc86" stroke-width="2"/>
+    <g transform="translate(34 70)"><circle cx="84" cy="-4" r="20" fill="#121518"/><text x="84" y="3" text-anchor="middle" font-weight="900" font-size="20" fill="#fff">1</text></g>
+    <g transform="translate(236 70)"><circle cx="84" cy="-4" r="20" fill="#121518"/><text x="84" y="3" text-anchor="middle" font-weight="900" font-size="20" fill="#fff">2</text></g>
+    <g transform="translate(438 70)"><circle cx="84" cy="-4" r="20" fill="#121518"/><text x="84" y="3" text-anchor="middle" font-weight="900" font-size="20" fill="#fff">3</text></g>
+    <path d="M104 150h28v38l34 62q6 14-8 14H78q-14 0-8-14l34-62z" fill="#fff" fill-opacity=".8" stroke="#5c7a10" stroke-width="4.5" stroke-linejoin="round"/>
+    <path d="M86 222h64l16 28q6 14-8 14H78q-14 0-8-14z" fill="url(#liq)"/>
+    <rect x="100" y="142" width="36" height="12" rx="6" fill="#5c7a10"/>
+    <circle cx="100" cy="246" r="5" fill="#fff" opacity=".7"/><circle cx="122" cy="236" r="4" fill="#fff" opacity=".7"/>
+    <text x="118" y="298" text-anchor="middle" font-weight="800" font-size="18" fill="#121518">Formulate</text>
+    <rect x="262" y="140" width="116" height="84" rx="8" fill="#f6fadf" stroke="#c9dc86" stroke-width="2"/>
+    <rect x="292" y="140" width="56" height="84" fill="#99c229"/>
+    <text x="320" y="176" text-anchor="middle" font-weight="800" font-size="8.5" fill="#1a2504" letter-spacing="1">YOUR BRAND</text>
+    <text x="320" y="204" text-anchor="middle" font-weight="900" font-size="20" fill="#121518">WHEY</text>
+    <rect x="270" y="156" width="14" height="5" rx="2.5" fill="#b5c27d"/><rect x="270" y="168" width="18" height="5" rx="2.5" fill="#b5c27d"/><rect x="270" y="180" width="12" height="5" rx="2.5" fill="#b5c27d"/>
+    <rect x="356" y="156" width="14" height="5" rx="2.5" fill="#b5c27d"/><rect x="354" y="168" width="18" height="5" rx="2.5" fill="#b5c27d"/>
+    <text x="320" y="298" text-anchor="middle" font-weight="800" font-size="18" fill="#121518">Label</text>
+    <rect x="468" y="164" width="108" height="64" rx="8" fill="#e7c98a"/><rect x="514" y="164" width="16" height="64" fill="#fff" opacity=".4"/>
+    <rect x="492" y="132" width="60" height="38" rx="7" fill="#d9b772"/><rect x="518" y="132" width="9" height="38" fill="#fff" opacity=".4"/>
+    <circle cx="496" cy="248" r="13" fill="#121518"/><circle cx="496" cy="248" r="5" fill="#cfd6d0"/><circle cx="548" cy="248" r="13" fill="#121518"/><circle cx="548" cy="248" r="5" fill="#cfd6d0"/>
+    <text x="522" y="298" text-anchor="middle" font-weight="800" font-size="18" fill="#121518">Dispatch</text>
+  </g>
+  <path d="M208 196h22" stroke="#5c7a10" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 9"/><path d="M226 186l14 10-14 10z" fill="#5c7a10"/>
+  <path d="M410 196h22" stroke="#5c7a10" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 9"/><path d="M428 186l14 10-14 10z" fill="#5c7a10"/>
+  <rect x="150" y="344" width="340" height="34" rx="17" fill="#99c229"/>
+  <text x="320" y="367" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="16" fill="#1a2504" letter-spacing="1.5">YOUR BRAND, MADE IN SURAT</text>
+  <path d="M596 40l5 13 13 5-13 5-5 13-5-13-13-5 13-5z" fill="#99c229" opacity=".6"/>
+</svg>

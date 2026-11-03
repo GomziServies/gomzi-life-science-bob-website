@@ -14,7 +14,7 @@ import styles from './TemplatesPage.module.css'
  *   ?category=<slug>&q=<words>                                      the opening filter (the visitor can change it)
  */
 export default function EmbedTemplatesPage() {
-  usePageMeta({ title: 'Choose a banner template', noindex: true })
+  usePageMeta({ title: 'Choose a label template', noindex: true })
   const [params] = useSearchParams()
   // The browser rewrites the query string while filtering, so the product is read once.
   const [carry] = useState(() => {
@@ -30,14 +30,14 @@ export default function EmbedTemplatesPage() {
     <div className={styles.page}>
       <div className={aiStyles.head}>
         <header className={styles.header}>
-          <p className={styles.eyebrow}>Your banner</p>
+          <p className={styles.eyebrow}>Your label</p>
           <h1 className={styles.title}>{name ? `Choose a design for ${name}` : 'Choose a design'}</h1>
           <p className={styles.lead}>Open a template to change your logo, text and colours. Not what you wanted? Let our AI design it for you.</p>
         </header>
         <aside className={aiStyles.ai} aria-label="Generate with AI">
           <b>Want something new?</b>
-          <span>Describe your banner and our AI studio will draw it. You can edit everything afterwards.</span>
-          <Link className={aiStyles.aiButton} to="/studio/new">
+          <span>Describe your label and our AI studio will draw it. You can edit everything afterwards.</span>
+          <Link className={aiStyles.aiButton} to={`/embed/studio?${carry}`}>
             <Sparkles size={18} aria-hidden />
             Generate with AI
           </Link>

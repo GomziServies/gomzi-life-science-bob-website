@@ -38,7 +38,7 @@ function documentFromParent(product: string): Promise<DoryDocument> {
   return new Promise((resolve, reject) => {
     const timer = window.setTimeout(() => {
       window.removeEventListener('message', onMessage)
-      reject(new Error('The banner design did not arrive. Please close and open it again.'))
+      reject(new Error('The label design did not arrive. Please close and open it again.'))
     }, 30_000)
     function onMessage(ev: MessageEvent) {
       const msg = ev.data as { source?: string; type?: string; productId?: string; doc?: DoryDocument } | null
@@ -73,7 +73,7 @@ function parentOrigin(): string | null {
  *   ?doc=message       the same, but the design comes from the parent page: this page posts `ready` and waits for `load`
  */
 export default function EmbedEditorPage() {
-  usePageMeta({ title: 'Design your banner', noindex: true })
+  usePageMeta({ title: 'Design your label', noindex: true })
   const [params] = useSearchParams()
   const template = params.get('template')
   const docUrl = params.get('doc')
@@ -142,7 +142,7 @@ export default function EmbedEditorPage() {
     const handle = editorRef.current
     if (!handle) return
     if (!target) {
-      setMessage('This editor can only be used from the banner website.')
+      setMessage('This editor can only be used from the label shop.')
       return
     }
     setSaving(true)
@@ -155,13 +155,13 @@ export default function EmbedEditorPage() {
         target,
       )
     } catch {
-      setMessage('We could not save your banner. Please try again.')
+      setMessage('We could not save your label. Please try again.')
     } finally {
       setSaving(false)
     }
   }
 
-  if (load.kind === 'loading') return <EditorSkeleton label="Opening your banner" />
+  if (load.kind === 'loading') return <EditorSkeleton label="Opening your label" />
   if (load.kind === 'error') return <EditorProblemPage problem={load.notFound ? 'not-found' : 'error'} onRetry={() => setLoad({ kind: 'loading' })} />
   if (!initialMeta) return null
 
@@ -180,7 +180,7 @@ export default function EmbedEditorPage() {
         <>
           {message ? <span role="alert">{message}</span> : null}
           <Button onClick={() => void save()} disabled={saving}>
-            {saving ? 'Saving…' : 'Save banner'}
+            {saving ? 'Saving…' : 'Save label'}
           </Button>
         </>
       }

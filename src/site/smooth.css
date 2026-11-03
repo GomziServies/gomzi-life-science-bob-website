@@ -1,0 +1,9 @@
+/* Global rules (not inside the shop's scoped stylesheet): smooth scrolling and the room under the sticky header for anchor links. */
+html:has(.site) { scroll-padding-top: 140px; }
+
+/* Lenis: the library's own recommended rules */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: clip; }
+.lenis.lenis-smooth iframe { pointer-events: none; }

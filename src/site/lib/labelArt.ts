@@ -174,6 +174,9 @@ async function fontFaces(): Promise<string> {
 }
 
 /** Draws the label to a canvas `px` wide. */
+/** Loads the label fonts ahead of time, so the first label on a 3D pack does not wait for them. */
+export const warmLabelFonts = (): Promise<void> => fontFaces().then(() => undefined, () => undefined);
+
 export async function renderCanvas(spec: LabelSpec, px: number): Promise<HTMLCanvasElement> {
   const css = await fontFaces();
   const svg = wrapSvg(spec, 'r' + Math.random().toString(36).slice(2, 8), { px }).replace('<defs>', `<defs><style>${css}</style>`);

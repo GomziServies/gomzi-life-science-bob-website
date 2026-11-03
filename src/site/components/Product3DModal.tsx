@@ -3,7 +3,7 @@ import type { Product } from '../data/catalog';
 import { getBannerDisplayUrl, type Banner } from '../state/order';
 import { ownDesign, tintOf } from './ProductJar';
 import { LabelView, type BannerLike } from './LabelView';
-import { PackToggle, type Pack } from './LabelParts';
+import { PackToggle, defaultBagLabel, useFirstJarLabel, type Pack } from './LabelParts';
 
 export interface Product3DModalProps {
   product: Product;
@@ -30,6 +30,7 @@ export function Product3DModal({
   onEdit,
 }: Product3DModalProps) {
   const [pack, setPack] = useState<Pack>('jar');
+  const firstJar = useFirstJarLabel(product);
 
   // Handle ESC key to close
   useEffect(() => {
@@ -92,7 +93,8 @@ export function Product3DModal({
               design: ownDesign(product.id),
               details: specDetails,
             }}
-            banner={appliedBanner}
+            banner={pack === 'jar' ? (appliedBanner ?? firstJar) : (defaultBagLabel(product, pack) ?? appliedBanner)}
+            waiting={pack === 'jar' && !appliedBanner && firstJar === undefined}
             pack={pack}
             autoTurn={false}
           />

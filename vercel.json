@@ -1,4 +1,8 @@
 {
+  "redirects": [
+    { "source": "/shop", "destination": "/", "permanent": true },
+    { "source": "/shop/:path*", "destination": "/:path*", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/((?!api/|media/|assets/).*)", "destination": "/index.html" }
   ]

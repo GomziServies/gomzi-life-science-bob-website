@@ -7,3 +7,7 @@ Disallow: /local/
 Disallow: /s/
 Disallow: /api/
 Disallow: /admin/
+Disallow: /details
+Disallow: /customize
+Disallow: /review
+Disallow: /done/

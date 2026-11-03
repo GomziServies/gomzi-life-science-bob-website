@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 440" fill="none" role="img" aria-label="A protein tub with your brand label, a scoop of powder and a lab flask">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="68%"><stop offset="0" stop-color="#fcfef5"/><stop offset="1" stop-color="#e1edb6"/></radialGradient>
+    <linearGradient id="tub" x1="0" x2="1"><stop offset="0" stop-color="#15181a"/><stop offset=".45" stop-color="#383f45"/><stop offset="1" stop-color="#13161a"/></linearGradient>
+    <linearGradient id="liq" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b6dc4a"/><stop offset="1" stop-color="#7da318"/></linearGradient>
+  </defs>
+  <rect width="520" height="440" rx="44" fill="url(#bg)"/>
+  <circle cx="64" cy="70" r="5" fill="#99c229" opacity=".5"/><circle cx="470" cy="96" r="7" fill="#99c229" opacity=".35"/><circle cx="440" cy="400" r="4" fill="#5c7a10" opacity=".3"/>
+  <path d="M452 58l5 14 14 5-14 5-5 14-5-14-14-5 14-5z" fill="#99c229" opacity=".6"/>
+  <ellipse cx="260" cy="390" rx="190" ry="16" fill="#5c7a10" opacity=".16"/>
+  <rect x="196" y="96" width="128" height="26" rx="9" fill="#101316"/>
+  <rect x="186" y="116" width="148" height="26" rx="9" fill="#1c2125"/>
+  <path d="M192 140H328Q340 140 340 152V350Q340 378 312 378H208Q180 378 180 350V152Q180 140 192 140Z" fill="url(#tub)"/>
+  <rect x="180" y="196" width="160" height="116" fill="#fffdf2"/>
+  <rect x="180" y="196" width="160" height="30" fill="#99c229"/>
+  <text x="260" y="217" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="14" fill="#1a2504" letter-spacing="2">YOUR BRAND</text>
+  <text x="260" y="262" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="26" fill="#121518">WHEY</text>
+  <text x="260" y="286" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="13" fill="#5c7a10" letter-spacing="3">PROTEIN</text>
+  <rect x="204" y="294" width="112" height="10" rx="5" fill="#e3efb8"/>
+  <path d="M196 150Q196 144 202 144" stroke="#fff" stroke-opacity=".18" stroke-width="3" stroke-linecap="round"/>
+  <path d="M70 372Q100 318 150 372Z" fill="#f3e4b4"/>
+  <ellipse cx="110" cy="372" rx="62" ry="10" fill="#e3cf94"/>
+  <path d="M52 322Q88 372 124 322Z" fill="#99c229"/>
+  <path d="M120 330L170 276" stroke="#5c7a10" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="170" cy="276" r="9" fill="#5c7a10"/>
+  <path d="M414 232h28v56l50 92q8 18-12 18H376q-20 0-12-18l50-92z" fill="#fff" fill-opacity=".72" stroke="#5c7a10" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M388 340h80l24 40q8 18-12 18H376q-20 0-12-18z" fill="url(#liq)" opacity=".9"/>
+  <rect x="408" y="222" width="40" height="12" rx="6" fill="#5c7a10"/>
+  <circle cx="410" cy="364" r="7" fill="#fff" opacity=".7"/><circle cx="436" cy="352" r="5" fill="#fff" opacity=".7"/><circle cx="446" cy="380" r="6" fill="#fff" opacity=".6"/>
+  <circle cx="428" cy="196" r="6" fill="#99c229" opacity=".7"/><circle cx="444" cy="170" r="4" fill="#99c229" opacity=".5"/>
+  <path d="M82 262c-4-26 12-42 38-46-2 24-14 42-38 46z" fill="#7da318"/><path d="M82 262c10-14 20-26 38-46" stroke="#fff" stroke-opacity=".6" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

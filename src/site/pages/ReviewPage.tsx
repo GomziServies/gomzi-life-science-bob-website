@@ -13,7 +13,7 @@ export function ReviewPage() {
   const [error, setError] = useState('');
   const [agreed, setAgreed] = useState(false);
 
-  if (!allBannersDone) return <Navigate to="/shop/customize" replace />;
+  if (!allBannersDone) return <Navigate to="/customize" replace />;
 
   const send = async () => {
     setBusy(true);
@@ -21,7 +21,7 @@ export function ReviewPage() {
     try {
       const id = await submitInquiry(customer, cart, banners);
       reset();
-      nav(`/shop/done/${id}`);
+      nav(`/done/${id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong. Please try again.');
       setBusy(false);
@@ -56,7 +56,7 @@ export function ReviewPage() {
                     <h3 style={{ margin: 0 }}>{p.name}</h3>
                     <span className="muted">{l.flavour !== 'Standard' ? `${l.flavour} · ` : ''}{l.quantity} {p.unit}</span>
                   </div>
-                  <Link className="btn btn-ghost btn-sm" to={`/shop/customize/${p.id}`}>Change</Link>
+                  <Link className="btn btn-ghost btn-sm" to={`/customize/${p.id}`}>Change</Link>
                 </div>
               );
             })}

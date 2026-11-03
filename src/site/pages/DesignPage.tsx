@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { productById } from '../data/catalog';
+import { ProductJar } from '../components/ProductJar';
+import { defaultQty } from '../lib/rules';
 import { useOrder, type BannerOrigin } from '../state/order';
 import { EDITOR_API, EDITOR_URL } from '../lib/config';
 import { getLogoSlot, makeThumbnail, uploadFile, type LogoSlot } from '../lib/api';
@@ -79,10 +81,19 @@ export function DesignPage() {
   const [logo] = useState(() => (search.get('logo') ? loadLogo() : ''));
   const logoMode = Boolean(logo && template);
   const product = productById(productId);
-  const { cart, customer, setBanner } = useOrder();
+  const { cart, customer, setBanner, addToCart } = useOrder();
   const nav = useNavigate();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  // the label studio inside the page has finished opening
+  const [ready, setReady] = useState(false);
+  const inCart = cart.some((l) => l.productId === productId);
+
+  // opening this address directly (or from a link) puts the product into the inquiry, as "Make your own" does
+  useEffect(() => {
+    if (product && !product.comingSoon && !inCart) addToCart({ productId, flavour: product.flavours[0], quantity: defaultQty(product, cart), packKg: 1 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId, inCart]);
 
   useEffect(() => {
     const editorOrigin = new URL(EDITOR_URL, window.location.href).origin;
@@ -129,8 +140,8 @@ export function DesignPage() {
           savedAt: stamp,
         });
 
-        // Redirect back to returnTo if specified, otherwise default to /shop/details?preview=${productId}
-        const destination = returnTo || `/shop/details?preview=${productId}`;
+        // Redirect back to returnTo if specified, otherwise default to /details?preview=${productId}
+        const destination = returnTo || `/details?preview=${productId}`;
         nav(destination);
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Could not save your banner. Please try again.');
@@ -142,7 +153,14 @@ export function DesignPage() {
     return () => window.removeEventListener('message', onMessage);
   }, [productId, customer.brandName, setBanner, nav, logoMode, logo, template, returnTo]);
 
-  if (!product || !cart.some((l) => l.productId === productId)) return <Navigate to="/shop/customize" replace />;
+  if (!product || product.comingSoon) return <Navigate to="/products" replace />;
+  if (!inCart)
+    return (
+      <div className="editor-shell">
+        <div className="editor-opening"><div className="load3d-spin" /><b>Opening the label studio…</b></div>
+      </div>
+    );
+  const line = cart.find((l) => l.productId === productId);
 
   const filter: Record<string, string> = product.templateCategory ? { category: product.templateCategory } : {};
   // ?template=<slug> opens that banner straight in the editor; otherwise the gallery opens first
@@ -154,19 +172,44 @@ export function DesignPage() {
     tag: product.tag,
   })}`;
 
-  const backDestination = returnTo || '/shop/details';
+  const backDestination = returnTo || '/details';
 
   return (
     <div className="editor-shell">
-      <div className="editor-bar">
-        <button className="btn btn-ghost btn-sm" onClick={() => nav(backDestination)} disabled={saving}>
-          Back to products
+      <header className="editor-bar">
+        <button type="button" className="editor-back" onClick={() => nav(backDestination)} disabled={saving}>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5" /><path d="m11 6-6 6 6 6" /></svg>
+          <span>Back</span>
         </button>
-        <b>{product.name}</b>
+        <div className="editor-prod">
+          <ProductJar className="editor-jar" product={product} flavour={line?.flavour} />
+          <span>
+            <b>{product.name}</b>
+            <small>{line?.flavour ? `${line.flavour} · ` : ''}Design your label</small>
+          </span>
+        </div>
         <span className="spacer" />
-        <span>{saving ? 'Saving your banner…' : error || 'Pick a template, edit it, then press Save banner'}</span>
+        <span className={`editor-hint${error ? ' err' : ''}`} role="status">
+          {saving ? 'Saving your label…' : error || 'Pick a template, edit it, then press Save label'}
+        </span>
+      </header>
+      <div className="editor-stage">
+        {!ready && (
+          <div className="editor-opening">
+            <div className="load3d-spin" />
+            <b>Opening the label studio…</b>
+            <span>Your templates for {product.name} are on the way</span>
+          </div>
+        )}
+        <iframe title="Label editor" src={src} allow="clipboard-write" onLoad={() => setReady(true)} />
+        {saving && (
+          <div className="editor-saving" role="alert">
+            <div className="load3d-spin" />
+            <b>Saving your label…</b>
+            <span>Please wait a few seconds. We are preparing your print file.</span>
+          </div>
+        )}
       </div>
-      <iframe title="Banner editor" src={src} allow="clipboard-write" />
     </div>
   );
 }

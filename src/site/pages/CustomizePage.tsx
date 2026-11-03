@@ -40,8 +40,8 @@ export function CustomizePage() {
     }
   };
 
-  if (!cart.length) return <Navigate to="/shop" replace />;
-  if (!customer.verificationId) return <Navigate to="/shop/details" replace />;
+  if (!cart.length) return <Navigate to="/" replace />;
+  if (!customer.verificationId) return <Navigate to="/details" replace />;
 
   const done = cart.filter((l) => banners[l.productId]).length;
 
@@ -147,7 +147,7 @@ export function CustomizePage() {
                   </button>
                   <Link
                     className={`btn btn-sm ${banner ? 'btn-ghost' : 'btn-lime'}`}
-                    to={`/shop/customize/${p.id}?returnTo=${encodeURIComponent(`/shop/customize?preview=${p.id}`)}`}
+                    to={`/customize/${p.id}?returnTo=${encodeURIComponent(`/customize?preview=${p.id}`)}`}
                   >
                     {banner ? 'Change banner' : 'Choose banner'}
                   </Link>
@@ -158,7 +158,7 @@ export function CustomizePage() {
         </div>
 
         <p style={{ marginTop: 28 }}>
-          <button className="btn btn-lime" disabled={!allBannersDone} onClick={() => nav('/shop/review')}>
+          <button className="btn btn-lime" disabled={!allBannersDone} onClick={() => nav('/review')}>
             Review and submit
           </button>
           {!allBannersDone && <span style={{ marginLeft: 12 }} className="badge">Save a banner for every product to continue</span>}
@@ -176,8 +176,8 @@ export function CustomizePage() {
           onClose={closePreview}
           onEdit={() => {
             nav(
-              `/shop/customize/${previewProduct.id}?returnTo=${encodeURIComponent(
-                `/shop/customize?preview=${previewProduct.id}`
+              `/customize/${previewProduct.id}?returnTo=${encodeURIComponent(
+                `/customize?preview=${previewProduct.id}`
               )}`
             );
           }}

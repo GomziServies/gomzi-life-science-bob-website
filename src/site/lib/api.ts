@@ -159,6 +159,8 @@ export interface GalleryBanner {
   thumb: string;
   width: number;
   height: number;
+  /** A ready pack label that already carries its own brand: no logo is placed on it. */
+  ownLogo?: boolean;
 }
 
 /** A template's picture: from the S3 bucket when its address is one of the company's file links, otherwise from the editor's media folder. */

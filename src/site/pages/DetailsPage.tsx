@@ -68,7 +68,7 @@ export function DetailsPage() {
         <div className="wrap narrow panel done">
           <h2>Your inquiry is empty</h2>
           <p>Choose at least one product to continue.</p>
-          <p><Link className="btn btn-lime" to="/shop#range">Choose products</Link></p>
+          <p><Link className="btn btn-lime" to="/#range">Choose products</Link></p>
         </div>
       </section>
     );
@@ -121,7 +121,7 @@ export function DetailsPage() {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (!missing.length) nav('/shop/customize');
+    if (!missing.length) nav('/customize');
   };
 
   return (
@@ -192,8 +192,8 @@ export function DetailsPage() {
                               className="linkbtn mini-edit-link"
                               onClick={() =>
                                 nav(
-                                  `/shop/customize/${p.id}?returnTo=${encodeURIComponent(
-                                    `/shop/details?preview=${p.id}`
+                                  `/customize/${p.id}?returnTo=${encodeURIComponent(
+                                    `/details?preview=${p.id}`
                                   )}`
                                 )
                               }
@@ -209,8 +209,8 @@ export function DetailsPage() {
                               className="linkbtn mini-edit-link"
                               onClick={() =>
                                 nav(
-                                  `/shop/customize/${p.id}?returnTo=${encodeURIComponent(
-                                    `/shop/details?preview=${p.id}`
+                                  `/customize/${p.id}?returnTo=${encodeURIComponent(
+                                    `/details?preview=${p.id}`
                                   )}`
                                 )
                               }
@@ -225,8 +225,8 @@ export function DetailsPage() {
                               className="linkbtn mini-edit-link"
                               onClick={() =>
                                 nav(
-                                  `/shop/customize/${p.id}?returnTo=${encodeURIComponent(
-                                    `/shop/details?preview=${p.id}`
+                                  `/customize/${p.id}?returnTo=${encodeURIComponent(
+                                    `/details?preview=${p.id}`
                                   )}`
                                 )
                               }
@@ -419,8 +419,8 @@ export function DetailsPage() {
           onClose={closePreview}
           onEdit={() => {
             nav(
-              `/shop/customize/${previewProduct.id}?returnTo=${encodeURIComponent(
-                `/shop/details?preview=${previewProduct.id}`
+              `/customize/${previewProduct.id}?returnTo=${encodeURIComponent(
+                `/details?preview=${previewProduct.id}`
               )}`
             );
           }}

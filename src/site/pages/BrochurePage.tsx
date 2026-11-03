@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { CATALOG, GROUPS, MIN_QTY, type GroupId } from '../data/catalog';
 import { CERTS, COMPANY, MADE_TO_ORDER } from '../data/content';
 import { Logo } from '../components/Logo';
+import { BROCHURE_FILE_NAME, BROCHURE_PDF } from '../data/brochure';
 
 /** The brochure: every product, and how to order. "Download" opens the print dialog, where PDF can be chosen. */
 export function BrochurePage() {
@@ -18,8 +19,9 @@ export function BrochurePage() {
     <section className="section brochure">
       <div className="wrap narrow">
         <div className="brochure-actions no-print">
-          <button className="btn btn-lime btn-sm" onClick={() => window.print()}>Download as PDF</button>
-          <span className="muted">In the print window, choose “Save as PDF”.</span>
+          <a className="btn btn-lime btn-sm" href={BROCHURE_PDF} download={BROCHURE_FILE_NAME}>Download the brochure (PDF)</a>
+          <a className="btn btn-ghost btn-sm" href={BROCHURE_PDF} target="_blank" rel="noopener noreferrer">View it in your browser</a>
+          <button className="btn btn-ghost btn-sm" onClick={() => window.print()}>Print this page</button>
         </div>
 
         <header className="brochure-head">

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Product } from '../data/catalog';
-import { designName, logoGuide, type Details } from '../lib/labelArt';
-import { pictureSize, readLogo } from '../lib/logo';
-import { FlatLabel, type LogoShift } from './LabelView';
+import { readLogo } from '../lib/logo';
+import type { LogoShift } from './LabelView';
+import { listGalleryBanners, type GalleryBanner } from '../lib/api';
+import { POUCH_LABELS, SACHET_LABELS } from '../data/bagLabels';
 
 export type Pack = 'jar' | 'pouch' | 'sachet';
 
@@ -68,64 +69,6 @@ export function LogoPlacement({ logo, onLogo, shift, onShift }: { logo: string; 
   );
 }
 
-/** Upload (or replace, or remove) the logo, with the exact size of the logo area on the chosen label. */
-export function LogoBox({ product, design, logo, onLogo }: { product: Product; design: number; logo: string; onLogo: (logo: string) => void }) {
-  const input = useRef<HTMLInputElement>(null);
-  const [error, setError] = useState('');
-  const [size, setSize] = useState({ w: 0, h: 0 });
-  const guide = logoGuide(product, design);
-
-  useEffect(() => {
-    let live = true;
-    if (logo) void pictureSize(logo).then((s) => live && setSize(s));
-    else setSize({ w: 0, h: 0 });
-    return () => {
-      live = false;
-    };
-  }, [logo]);
-
-  const pick = async (file?: File) => {
-    if (!file) return;
-    setError('');
-    try {
-      onLogo(await readLogo(file));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'That logo could not be used.');
-    }
-  };
-  const small = logo && size.w > 0 && size.w < guide.pxW * 0.6 && size.h < guide.pxH * 0.6;
-
-  return (
-    <div className="logobox">
-      <input ref={input} type="file" accept=".png,.jpg,.jpeg,.webp" hidden onChange={(e) => { void pick(e.target.files?.[0]); e.target.value = ''; }} />
-      <div className="logobox-row">
-        <button type="button" className="btn btn-lime btn-sm" onClick={() => input.current?.click()}>{logo ? 'Change logo' : 'Upload your logo'}</button>
-        {logo && <button type="button" className="btn btn-ghost btn-sm" onClick={() => onLogo('')}>Remove</button>}
-        {logo && <img className="logobox-thumb" src={logo} alt="Your logo" />}
-      </div>
-      <span className="logobox-size">
-        Logo area on this label: <b>{guide.mmW} × {guide.mmH} mm</b>. Use a PNG with a transparent background, at least <b>{guide.pxW} × {guide.pxH} px</b>.
-      </span>
-      {small && <span className="logobox-warn">Your logo is {size.w} × {size.h} px, so it may print soft. A bigger file will be sharper.</span>}
-      {error && <span className="logobox-warn">{error}</span>}
-    </div>
-  );
-}
-
-/** The label designs to pick from, each shown as its front panel. */
-export function DesignPicks({ product, flavour, designs, current, onPick, details, logo }: { product: Product; flavour: string; designs: number[]; current: number; onPick: (d: number) => void; details: Details; logo?: string }) {
-  return (
-    <div className="dpicks" role="group" aria-label="Label design">
-      {designs.map((d) => (
-        <button key={d} type="button" className="dpick" aria-pressed={d === current} onClick={() => onPick(d)} title={designName(d)}>
-          <FlatLabel spec={{ product, flavour, design: d, details, logo }} view="front" className="dpick-art" />
-          <span>{designName(d)}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
 /** A small line under the label pickers for a customer who likes none of the labels: one tap leaves it to the design team. */
 export function TeamChoice({ picked, onPick, className }: { picked: boolean; onPick: () => void; className?: string }) {
   return (
@@ -142,3 +85,41 @@ export function TeamChoice({ picked, onPick, className }: { picked: boolean; onP
     </div>
   );
 }
+
+/** The labels to offer for a product in a pack: the ready pouch and sachet labels when the pouch or sachet is shown (for the powders that come in all three packs),
+ * otherwise the ones our team saved in the template gallery. */
+export function labelsFor(product: Product, pack: Pack): Promise<GalleryBanner[]> {
+  if (pack !== 'jar' && packsOf(product).length === 3) return Promise.resolve(pack === 'pouch' ? POUCH_LABELS : SACHET_LABELS);
+  return listGalleryBanners(product.templateCategory);
+}
+
+/** The label a product wears when nothing was picked: the first ready label for its pack (never a built-in drawing). */
+export const defaultBagLabel = (product: Product, pack: Pack): GalleryBanner | null => (pack !== 'jar' && packsOf(product).length === 3 ? (pack === 'pouch' ? POUCH_LABELS[0] : SACHET_LABELS[0]) : null);
+const firstJar = new Map<string, GalleryBanner | null>();
+/** The first of our gallery labels for a product's jar (loaded once per kind of product). */
+export function useFirstJarLabel(product: Product): GalleryBanner | null | undefined {
+  const key = product.templateCategory;
+  const [label, setLabel] = useState<GalleryBanner | null | undefined>(() => firstJar.get(key));
+  useEffect(() => {
+    if (firstJar.has(key)) return setLabel(firstJar.get(key));
+    let live = true;
+    listGalleryBanners(key)
+      .then((list) => list[0] ?? null)
+      .catch(() => null)
+      .then((first) => {
+        firstJar.set(key, first);
+        if (live) setLabel(first);
+      });
+    return () => {
+      live = false;
+    };
+  }, [key]);
+  return label;
+}
+
+/** The label to put on the pack being shown, right now: a jar's wide wrap is never stretched onto a pouch or sachet (nor a pouch label onto a jar) while the
+ * list of labels for the new pack is still loading. `null` means "wait for the label". */
+export const labelOnPack = (product: Product, pack: Pack, picked: GalleryBanner | null): GalleryBanner | null => {
+  if (pack !== 'jar' && packsOf(product).length === 3) return picked?.ownLogo ? picked : defaultBagLabel(product, pack);
+  return picked?.ownLogo ? null : picked;
+};

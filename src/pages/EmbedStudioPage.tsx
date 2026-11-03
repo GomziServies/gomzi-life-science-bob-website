@@ -17,7 +17,7 @@ const BANNER = { width: 1600, height: 600 }
  *   ?product=<id>&name=<product name>&brand=<brand name>&tag=<product tagline>
  */
 export default function EmbedStudioPage() {
-  usePageMeta({ title: 'Generate your banner with AI', noindex: true })
+  usePageMeta({ title: 'Generate your label with AI', noindex: true })
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const aiLabel = useAiLabel()
@@ -52,14 +52,14 @@ export default function EmbedStudioPage() {
       const local = await createLocalDesign({ title, document: pictureDocument(job, title) as never })
       navigate(`/embed/editor?${new URLSearchParams({ local: local.id, product, mode: 'ai' })}`, { replace: true })
     } else {
-      setError(job?.error || aiLabel.error || 'The banner could not be made. Try again.')
+      setError(job?.error || aiLabel.error || 'The label could not be made. Try again.')
     }
   }
 
   return (
     <main style={{ maxWidth: 640, margin: '48px auto', padding: '0 20px', fontFamily: 'inherit' }}>
-      <h1 style={{ fontSize: 28 }}>Generate a banner with AI</h1>
-      <p>Describe the banner you want for <b>{name || 'your product'}</b>. You can edit everything afterwards.</p>
+      <h1 style={{ fontSize: 28 }}>Generate a label with AI</h1>
+      <p>Describe the label you want for <b>{name || 'your product'}</b>. You can edit everything afterwards.</p>
       <label htmlFor="prompt" style={{ display: 'block', fontWeight: 700, marginBottom: 6 }}>What should it look like?</label>
       <textarea
         id="prompt"
@@ -73,7 +73,7 @@ export default function EmbedStudioPage() {
       {error ? <p role="alert" style={{ color: '#c0392b' }}>{error}</p> : null}
       <p>
         <Button onClick={() => void generate()} disabled={busy || prompt.trim().length < 10}>
-          {busy ? 'Drawing your banner… this takes about a minute' : 'Generate banner'}
+          {busy ? 'Drawing your label… this takes about a minute' : 'Generate label'}
         </Button>
       </p>
     </main>

@@ -1,8 +1,10 @@
 import { useSyncExternalStore } from 'react';
 
 /** Shared state of the shop's 3D pictures: whether the models are loaded, how many first pictures are drawn, whether the page has been released from its loading screen, and the one clock every card changes pack by. */
-const FIRST_PICTURES = 6;
-const MAX_WAIT_MS = 30000;
+/** The page waits behind its loading screen for the pictures of the cards at the top (what a visitor sees first); the other cards go on drawing right after, in order, usually before they are scrolled to. */
+const FIRST_PICTURES = 9;
+/** The longest the loading screen is ever shown. */
+const MAX_WAIT_MS = 45000;
 const CHANGE_MS = 3000;
 
 let started = false;
@@ -37,6 +39,7 @@ export function startPreload(cardsAtTop: number) {
   if (started) return;
   started = true;
   const needed = Math.min(FIRST_PICTURES, Math.max(0, cardsAtTop));
+  void import('./labelArt').then((m) => m.warmLabelFonts());
   void import('../components/JarScene')
     .then((m) => m.preloadModels())
     .catch(() => undefined)
@@ -50,6 +53,23 @@ export function startPreload(cardsAtTop: number) {
   neededPictures = needed;
 }
 let neededPictures = FIRST_PICTURES;
+
+/** A page that shows product cards asks for the loading screen again until its first pictures are drawn (the models are already loaded after the first time). */
+export function beginPage(cards: number) {
+  if (!started) {
+    startPreload(cards);
+    return;
+  }
+  const needed = Math.min(FIRST_PICTURES, Math.max(0, cards));
+  neededPictures = needed;
+  pictures = 0;
+  if (needed === 0) return;
+  released = false;
+  if (clock) window.clearInterval(clock);
+  clock = undefined;
+  emit();
+  window.setTimeout(release, MAX_WAIT_MS);
+}
 
 /** A card has drawn its first picture. */
 export function notePicture() {

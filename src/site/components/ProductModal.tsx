@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import type { Product } from '../data/catalog';
 import { BROCHURE, PACK_SIZES } from '../data/content';
-import { listGalleryBanners, type GalleryBanner } from '../lib/api';
+import type { GalleryBanner } from '../lib/api';
 import { type Details } from '../lib/labelArt';
 import { LabelView, type LogoShift } from './LabelView';
-import { LogoPlacement, PackToggle, TeamChoice, packText, type Pack } from './LabelParts';
+import { LogoPlacement, PackToggle, TeamChoice, labelsFor, labelOnPack, packText, type Pack } from './LabelParts';
 import { ProductJar, ownDesign, tintOf } from './ProductJar';
 
 interface Props {
@@ -37,14 +37,14 @@ export function ProductModal({ product, flavour, inCart, banner, pack, onPack, o
   const [labels, setLabels] = useState<GalleryBanner[] | null>(null);
   const [label, setLabel] = useState<GalleryBanner | null>(null);
   const [shape, setShape] = useState<Pack>('jar');
-  const threeD = product.group !== 'well';
+  const threeD = true; // every product has a 3D view now, the capsule bottles too
 
   // the first five labels our team made for this kind of product: the customer turns the jar and clicks one to wear it
   useEffect(() => {
     let live = true;
     setLabels(null);
     setLabel(null);
-    listGalleryBanners(product.templateCategory)
+    labelsFor(product, shape)
       .then((list) => {
         if (!live) return;
         const five = list; // every label, the picker shows six and scrolls
@@ -55,7 +55,7 @@ export function ProductModal({ product, flavour, inCart, banner, pack, onPack, o
     return () => {
       live = false;
     };
-  }, [product.templateCategory]);
+  }, [product.templateCategory, shape]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -69,7 +69,7 @@ export function ProductModal({ product, flavour, inCart, banner, pack, onPack, o
         <button className="icon-x modal-x" aria-label="Close" onClick={onClose}>×</button>
         <div className="pmodal-art" style={{ ['--tint' as string]: tintOf(product.id) }}>
           {threeD ? (
-            <LabelView className="pmodal-3d" mode="3d" spec={{ product, flavour, design: ownDesign(product.id), details, logo: undefined }} banner={label} pack={shape} logo={logo || undefined} logoShift={shift} autoTurn={false} />
+            <LabelView className="pmodal-3d" mode="3d" spec={{ product, flavour, design: ownDesign(product.id), details, logo: undefined }} banner={labelOnPack(product, shape, label)} waiting={labels === null || (shape === 'jar' && !!label?.ownLogo)} pack={shape} logo={logo || undefined} logoShift={shift} autoTurn={false} />
           ) : (
             <ProductJar className="jar-card" product={product} flavour={flavour} banner={banner} />
           )}
@@ -129,13 +129,13 @@ export function ProductModal({ product, flavour, inCart, banner, pack, onPack, o
               <div className="dpicks pmodal-labels" role="group" aria-label="Label">
                 {labels.map((b) => (
                   <button key={b.slug} type="button" className="dpick" aria-pressed={label?.slug === b.slug} onClick={() => setLabel(b)} title={b.title}>
-                    <img className="dpick-img" src={b.thumb} alt={b.title} loading="lazy" />
+                    <img className={`dpick-img${b.ownLogo ? " bag" : ""}`} src={b.thumb} alt={b.title} loading="lazy" />
                   </button>
                 ))}
               </div>
             </>
           )}
-          {labels && labels.length > 0 && <LogoPlacement logo={logo} onLogo={onLogo} shift={shift} onShift={onShift} />}
+          {labels && labels.length > 0 && !label?.ownLogo && <LogoPlacement logo={logo} onLogo={onLogo} shift={shift} onShift={onShift} />}
           {labels && labels.length > 0 && <TeamChoice picked={team} onPick={onTeam} />}
           <div className="modal-actions">
             {product.comingSoon ? (
@@ -145,7 +145,7 @@ export function ProductModal({ product, flavour, inCart, banner, pack, onPack, o
             ) : (
               <button type="button" className="btn btn-lime" onClick={onAdd}>Add to inquiry</button>
             )}
-            {label && <button type="button" className="btn btn-dark" onClick={() => onEdit(label.slug)}>Edit this label</button>}
+            {label && !label.ownLogo && <button type="button" className="btn btn-dark" onClick={() => onEdit(label.slug)}>Edit this label</button>}
           </div>
         </div>
       </div>

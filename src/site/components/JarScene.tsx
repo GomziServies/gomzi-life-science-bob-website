@@ -46,6 +46,68 @@ const JAR_MODEL = {
   labelY1: 2.84,
   top: 4.37,
 };
+/** The capsule / tablet bottle: a 3D model (public/models/pill-bottle.obj, drawn with z up): the bottle (Body1), its cap (Body2) and a label band (Body5); Body3 and Body4 are loose pieces beside it and are left out. */
+const PILL_MODEL = {
+  url: `${import.meta.env.BASE_URL}models/pill-bottle.obj`,
+  /** In the model's own units: the bottle's radius, the label band's bottom and top, and the cap's top. */
+  r: 2.903,
+  y0: 1.2,
+  y1: 7.9,
+  top: 10.9,
+};
+/** The band's size: fixed, as for the protein bottle (its circumference at the usual 177.8 mm label width, and its height in proportion). */
+const PILL_BAND_MM = { w: 177.8, h: (177.8 * (PILL_MODEL.y1 - PILL_MODEL.y0)) / (2 * Math.PI * PILL_MODEL.r) };
+let pillModel: Promise<THREE.Group> | null = null;
+const loadPill = () => (pillModel ??= new OBJLoader().loadAsync(PILL_MODEL.url).catch((e) => {
+  pillModel = null;
+  throw e;
+}));
+
+/** The protein bottle's label band is a fixed size (its circumference by its height, in mm at the tub's usual 450 mm wrap): the bottle never changes shape, any label is fitted onto this band. */
+const TUB_BAND_MM = { w: 450, h: (450 * (JAR_MODEL.labelY1 - JAR_MODEL.labelY0)) / (2 * Math.PI * JAR_MODEL.labelR) };
+
+/** Fits a label of any size onto the bottle's band: its proportions are kept, and any gap round it is filled with the label's own edge colour. */
+function fitToBand(src: HTMLCanvasElement, labelAspect: number, bandA = TUB_BAND_MM.w / TUB_BAND_MM.h): HTMLCanvasElement {
+  const W = Math.min(4096, Math.max(1024, src.width));
+  const H = Math.round(W / bandA);
+  const out = document.createElement('canvas');
+  out.width = W;
+  out.height = H;
+  const cx = out.getContext('2d')!;
+  // the average colour of a strip along one edge of the label
+  const avg = (sx: number, sy: number, sw: number, sh: number) => {
+    const t = document.createElement('canvas');
+    t.width = 1;
+    t.height = 1;
+    const tc = t.getContext('2d')!;
+    tc.imageSmoothingQuality = 'high';
+    tc.drawImage(src, sx, sy, sw, sh, 0, 0, 1, 1);
+    const d = tc.getImageData(0, 0, 1, 1).data;
+    return `rgb(${d[0]},${d[1]},${d[2]})`;
+  };
+  const strip = Math.max(2, Math.round(Math.min(src.width, src.height) * 0.02));
+  if (labelAspect >= bandA) {
+    // a wide, low label: it goes right round the bottle, with a band above and below
+    const h = Math.round(W / labelAspect);
+    const y = Math.round((H - h) / 2);
+    cx.fillStyle = avg(0, 0, src.width, strip);
+    cx.fillRect(0, 0, W, y + 1);
+    cx.fillStyle = avg(0, src.height - strip, src.width, strip);
+    cx.fillRect(0, y + h - 1, W, H - y - h + 1);
+    cx.drawImage(src, 0, y, W, h);
+  } else {
+    // a taller label: it fills the band's height, centred on the front, and the rest of the way round is its edge colour
+    const w = Math.round(H * labelAspect);
+    const x = Math.round((W - w) / 2);
+    cx.fillStyle = avg(0, 0, strip, src.height);
+    cx.fillRect(0, 0, x + 1, H);
+    cx.fillStyle = avg(src.width - strip, 0, strip, src.height);
+    cx.fillRect(x + w - 1, 0, W - x - w + 1, H);
+    cx.drawImage(src, x, 0, w, H);
+  }
+  return out;
+}
+
 let jarModel: Promise<THREE.Group> | null = null;
 const loadJar = () => (jarModel ??= new OBJLoader().loadAsync(JAR_MODEL.url).catch((e) => {
   jarModel = null;
@@ -104,7 +166,7 @@ const loadSmallJar = () => (smallJarModel ??= new GLTFLoader().loadAsync(SMALL_J
 }));
 
 /** Loads every 3D model now, so the first card that needs one does not wait for it. */
-export const preloadModels = (): Promise<unknown> => Promise.all([loadJar, loadPouch, loadSachet, loadSmallJar].map((load) => load().catch(() => undefined)));
+export const preloadModels = (): Promise<unknown> => Promise.all([loadJar, loadPouch, loadSachet, loadSmallJar, loadPill].map((load) => load().catch(() => undefined)));
 
 /**
  * The bottom of a tablet bottle, like the real black bottle: a wide, softly rounded base corner, and the wall narrowing a little towards the
@@ -238,7 +300,7 @@ function bagFaces(wrap: HTMLCanvasElement, panels: [number, number, number], asp
 }
 
 /** A jar with the label wrapped round it. It flips from panel to panel by itself and can be turned by hand. */
-export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, className, autoTurn = true, onUnsupported, onSnapshot }: JarSceneProps) {
+export default function JarScene({ wrap, mm, kind, jarColor, panels, className, autoTurn = true, onUnsupported, onSnapshot }: JarSceneProps) {
   const snapRef = useRef(onSnapshot);
   snapRef.current = onSnapshot;
   const host = useRef<HTMLDivElement>(null);
@@ -280,16 +342,19 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
     const isBag = kind === 'pouch' || kind === 'sachet';
     const s = SHAPE[isBag ? 'jar' : kind];
     const isTub = kind === 'tub';
-    const R = isBag ? 50 : mm.w / (2 * Math.PI * (isTub ? TUB.wallR : 1));
-    const labelH = mm.h / R;
+    // the protein bottle keeps its own shape: its band is a fixed size, whatever the label's size
+    const isPill = kind === 'bottle';
+    const dim = isTub ? TUB_BAND_MM : isPill ? PILL_BAND_MM : mm;
+    const R = isBag ? 50 : dim.w / (2 * Math.PI * (isTub ? TUB.wallR : 1));
+    const labelH = dim.h / R;
     const group = new THREE.Group();
     scene.add(group);
 
     const body = new THREE.MeshPhysicalMaterial({ color: jarColor, roughness: 0.7, clearcoat: 0, envMapIntensity: 0.8 });
-    const capColor = isTub && accent ? new THREE.Color(accent) : new THREE.Color(jarColor).multiplyScalar(0.55);
+    const capColor = new THREE.Color(0x141414); // every cap is black, whatever the label's colours
     const capMat = new THREE.MeshPhysicalMaterial({ color: capColor, roughness: 0.7, metalness: 0, clearcoat: 0, envMapIntensity: 0.8 });
     // the label is not lit: it shows exactly the picture, with no shadow and no shine
-    const labelMat = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
+    const labelMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(jarColor), toneMapped: false });
     // the label, wrapped right round; the middle of the picture faces the front
     const wrapBand = (radius: number, y: number) => {
       const band = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, labelH, 192, 1, true, Math.PI, Math.PI * 2), labelMat);
@@ -300,7 +365,7 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
     let disposed = false;
     let smallLabel: THREE.Mesh | null = null;
     // a pack drawn from a model is ready when the model is in the scene; the others at once
-    let modelReady = !(kind === 'pouch' || kind === 'sachet' || kind === 'tub' || kind === 'jar');
+    let modelReady = !(kind === 'pouch' || kind === 'sachet' || kind === 'tub' || kind === 'jar' || kind === 'bottle');
     let snapped = false;
     let snap = () => undefined as void;
     let bag: { front: THREE.MeshBasicMaterial; back: THREE.MeshBasicMaterial; aspect: number; plain?: boolean; atlas?: boolean; original?: CanvasImageSource | null } | null = null;
@@ -371,7 +436,7 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
       const wanted = labelH / k;
       const mapY = (y: number) => (y <= JAR_MODEL.labelY0 ? y : y >= JAR_MODEL.labelY1 ? y + (wanted - bandH) : JAR_MODEL.labelY0 + ((y - JAR_MODEL.labelY0) * wanted) / bandH);
       total = (JAR_MODEL.top + (wanted - bandH)) * k + 0.06;
-      const capTop = accent ? new THREE.Color(accent) : new THREE.Color(jarColor).multiplyScalar(0.55);
+      const capTop = new THREE.Color(0x141414);
       loadJar()
         .then((model) => {
           if (disposed) return;
@@ -456,6 +521,56 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
               mesh.material = new THREE.MeshPhysicalMaterial({ color: new THREE.Color(jarColor), roughness: 0.7, clearcoat: 0, envMapIntensity: 0.8 });
             }
           });
+          api.current?.setWrap(wrapRef.current);
+          modelReady = true;
+          snap();
+        })
+        .catch(() => undefined);
+    } else if (kind === 'bottle') {
+      // the capsule bottle model, at a fixed shape: its own label band takes the label, wrapped by angle (the middle of the picture faces the front)
+      const M = PILL_MODEL;
+      const k = 1 / M.r;
+      total = M.top * k + 0.06;
+      loadPill()
+        .then((model) => {
+          if (disposed) return;
+          const root = model.clone(true);
+          root.traverse((o) => {
+            const mesh = o as THREE.Mesh;
+            if (!mesh.isMesh) return;
+            if (mesh.name === 'Body3' || mesh.name === 'Body4') {
+              mesh.visible = false;
+            } else if (mesh.name === 'Body5') {
+              const geo = mesh.geometry.clone();
+              const pos = geo.getAttribute('position');
+              // the band has fewer sides than the smooth bottle wall: it is pushed out a hair so the wall never shows through between its corners
+              for (let i = 0; i < pos.count; i++) pos.setXY(i, pos.getX(i) * 1.01, pos.getY(i) * 1.01);
+              const uv = new Float32Array(pos.count * 2);
+              // the model has z up and its front towards -y: angle round the bottle gives u, height gives v
+              for (let i = 0; i < pos.count; i += 3) {
+                const us = [0, 1, 2].map((j) => Math.atan2(pos.getX(i + j), -pos.getY(i + j)) / (2 * Math.PI) + 0.5);
+                // a triangle across the seam at the back: carry its low ends on past 1
+                if (Math.max(...us) - Math.min(...us) > 0.5) for (let j = 0; j < 3; j++) if (us[j] < 0.5) us[j] += 1;
+                for (let j = 0; j < 3; j++) {
+                  uv[(i + j) * 2] = us[j];
+                  uv[(i + j) * 2 + 1] = (pos.getZ(i + j) - M.y0) / (M.y1 - M.y0);
+                }
+              }
+              geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+              mesh.geometry = geo;
+              mesh.material = labelMat;
+            } else if (mesh.name === 'Body2') {
+              mesh.material = capMat;
+            } else {
+              mesh.material = body;
+            }
+          });
+          // z up in the model, y up here
+          const pivot = new THREE.Group();
+          pivot.rotation.x = -Math.PI / 2;
+          pivot.scale.setScalar(k);
+          pivot.add(root);
+          group.add(pivot);
           api.current?.setWrap(wrapRef.current);
           modelReady = true;
           snap();
@@ -675,7 +790,7 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
       requestAnimationFrame(() => {
         if (disposed) return;
         renderer.render(scene, camera);
-        snapRef.current?.(renderer.domElement.toDataURL('image/png'));
+        snapRef.current?.(renderer.domElement.toDataURL('image/webp', 0.92));
       });
     };
     const rawSetWrap = (canvas: HTMLCanvasElement | null) => {
@@ -750,9 +865,12 @@ export default function JarScene({ wrap, mm, kind, jarColor, accent, panels, cla
           }
           labelMat.needsUpdate = true;
         } else {
-          labelMat.map = canvas ? texOf(canvas) : null;
+          labelMat.map = canvas ? texOf(isTub ? fitToBand(canvas, mm.w / mm.h) : isPill ? fitToBand(canvas, mm.w / mm.h, PILL_BAND_MM.w / PILL_BAND_MM.h) : canvas) : null;
+          if (isPill && labelMat.map) labelMat.map.wrapS = THREE.RepeatWrapping; // the label's picture carries on past its right edge at the back
           labelMat.needsUpdate = true;
         }
+        // white under a picture (so its colours are true); the pack's own colour while there is no picture yet
+        if (!bag) labelMat.color.set(labelMat.map ? 0xffffff : jarColor);
     };
     api.current = {
       setWrap: (c) => {

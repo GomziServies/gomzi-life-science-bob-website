@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 440" fill="none" role="img" aria-label="A parcel packed at the Gomzi facility travels by truck to your customer's home">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="68%"><stop offset="0" stop-color="#fcfef5"/><stop offset="1" stop-color="#e1edb6"/></radialGradient>
+  </defs>
+  <rect width="520" height="440" rx="44" fill="url(#bg)"/>
+  <rect x="30" y="368" width="460" height="8" rx="4" fill="#9db25a" opacity=".5"/>
+  <g>
+    <rect x="34" y="150" width="130" height="170" rx="10" fill="#fff" stroke="#5c7a10" stroke-width="4"/>
+    <path d="M34 190l32-26v26l32-26v26l32-26v26" stroke="#5c7a10" stroke-width="4" stroke-linejoin="round"/>
+    <rect x="34" y="150" width="130" height="14" fill="#99c229"/>
+    <rect x="84" y="262" width="34" height="58" rx="3" fill="#99c229"/>
+    <rect x="50" y="214" width="26" height="22" rx="3" fill="#e6f1bb"/><rect x="122" y="214" width="26" height="22" rx="3" fill="#e6f1bb"/>
+    <text x="99" y="346" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="15" fill="#5c7a10" letter-spacing="1.5">GOMZI · SURAT</text>
+    <rect x="124" y="288" width="34" height="32" rx="4" fill="#e7c98a"/><rect x="136" y="288" width="8" height="32" fill="#fff" opacity=".45"/>
+  </g>
+  <g transform="translate(172 238) scale(.78)">
+    <rect x="0" y="0" width="140" height="74" rx="10" fill="#fff" stroke="#5c7a10" stroke-width="4"/>
+    <path d="M140 22h38l30 32v20h-68z" fill="#99c229" stroke="#5c7a10" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M152 30h22l18 20h-40z" fill="#e6f1bb"/>
+    <rect x="14" y="16" width="34" height="30" rx="4" fill="#e7c98a"/><rect x="54" y="30" width="30" height="16" rx="4" fill="#e7c98a"/><rect x="92" y="12" width="36" height="34" rx="4" fill="#e7c98a"/>
+    <text x="70" y="64" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="10" fill="#5c7a10" letter-spacing="1.5">YOUR BRAND</text>
+    <circle cx="36" cy="76" r="15" fill="#121518"/><circle cx="36" cy="76" r="6" fill="#cfd6d0"/>
+    <circle cx="168" cy="76" r="15" fill="#121518"/><circle cx="168" cy="76" r="6" fill="#cfd6d0"/>
+  </g>
+  <path d="M196 196c20-26 56-34 90-16" stroke="#5c7a10" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 10" opacity=".6"/>
+  <g>
+    <path d="M356 190l62-52 62 52v130H356z" fill="#fff" stroke="#5c7a10" stroke-width="4.5" stroke-linejoin="round"/>
+    <path d="M344 196l74-62 74 62" stroke="#99c229" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="396" y="252" width="44" height="68" rx="4" fill="#99c229"/>
+    <circle cx="430" cy="288" r="3" fill="#1a2504"/>
+    <rect x="372" y="206" width="26" height="26" rx="3" fill="#e6f1bb"/><rect x="438" y="206" width="26" height="26" rx="3" fill="#e6f1bb"/>
+    <rect x="444" y="284" width="34" height="36" rx="4" fill="#e7c98a"/><rect x="456" y="284" width="8" height="36" fill="#fff" opacity=".45"/>
+    <text x="418" y="346" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="14" fill="#5c7a10" letter-spacing="1.2">YOUR CUSTOMER</text>
+  </g>
+  <g transform="translate(470 120)"><circle r="22" fill="#99c229"/><path d="M-9 0l6 7 12-14" stroke="#1a2504" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <path d="M60 80l4 11 11 4-11 4-4 11-4-11-11-4 11-4z" fill="#99c229" opacity=".6"/>
+</svg>

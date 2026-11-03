@@ -13,7 +13,7 @@ export function DonePage() {
         <p>Our expert team will review your products and labels and call you on the number you gave.</p>
         <p className="actions">
           <a className="btn btn-lime" href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hi, my inquiry reference is ${leadId}`)}`}>Chat on WhatsApp</a>
-          <Link className="btn btn-ghost" to="/shop">Back to home</Link>
+          <Link className="btn btn-ghost" to="/">Back to home</Link>
         </p>
       </div>
     </section>

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { MAIN_SITE } from '../data/content';
 
 // Footer laid out like the company website (gomzilifesciences.in), so this order site can sit inside it later.
@@ -13,9 +14,9 @@ const SERVICES: [string, string][] = [
 ];
 
 const LINKS: [string, string][] = [
-  ['Contact Us', site('/nutrition/contact-us')],
-  ['AboutUs', site('/aboutUs')],
-  ['Faq', '/shop#faq'],
+  ['Contact Us', '/contact'],
+  ['About Us', '/about'],
+  ['FAQ', '/faq'],
 ];
 
 const INFORMATION: [string, string][] = [
@@ -66,7 +67,7 @@ export function Footer() {
 
         <div className="gf-col">
           <h4>Links</h4>
-          <ul>{LINKS.map(([label, href]) => <li key={label}><a href={href}>{label}</a></li>)}</ul>
+          <ul>{LINKS.map(([label, href]) => <li key={label}>{href.startsWith('/') ? <Link to={href}>{label}</Link> : <a href={href}>{label}</a>}</li>)}</ul>
         </div>
 
         <div className="gf-col">

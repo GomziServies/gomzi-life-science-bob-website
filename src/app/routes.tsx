@@ -1,22 +1,14 @@
 import { lazy, Suspense } from 'react'
-import { Navigate, type RouteObject } from 'react-router-dom'
+import { Navigate, useLocation, type RouteObject } from 'react-router-dom'
 import { RequireAuth } from '@/features/auth/RequireAuth'
 import { PageLoader } from './PageLoader'
 import { RouteErrorPage } from './RouteErrorPage'
-import { AuthLayout } from './layouts/AuthLayout'
 import { MarketingLayout } from './layouts/MarketingLayout'
 import { RootLayout } from './layouts/RootLayout'
 
 const TemplatesPage = lazy(() => import('@/pages/TemplatesPage'))
 const FeaturesPage = lazy(() => import('@/pages/FeaturesPage'))
-const FaqPage = lazy(() => import('@/pages/FaqPage'))
-const ContactPage = lazy(() => import('@/pages/ContactPage'))
 const TemplateDetailPage = lazy(() => import('@/pages/TemplateDetailPage'))
-const LoginPage = lazy(() => import('@/pages/auth/LoginPage'))
-const SignupPage = lazy(() => import('@/pages/auth/SignupPage'))
-const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage'))
-const ResetPasswordPage = lazy(() => import('@/pages/auth/ResetPasswordPage'))
-const VerifyEmailPage = lazy(() => import('@/pages/auth/VerifyEmailPage'))
 const CreatePage = lazy(() => import('@/pages/CreatePage'))
 const LocalEditorPage = lazy(() => import('@/pages/LocalEditorPage'))
 const EmbedEditorPage = lazy(() => import('@/pages/EmbedEditorPage'))
@@ -25,7 +17,6 @@ const EmbedTemplatesPage = lazy(() => import('@/pages/EmbedTemplatesPage'))
 const DesignEditorPage = lazy(() => import('@/pages/DesignEditorPage'))
 const SharedDesignPage = lazy(() => import('@/pages/SharedDesignPage'))
 const SiteApp = lazy(() => import('@/site/SiteApp'))
-const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 const DashboardLayout = lazy(() => import('@/features/dashboard/DashboardLayout'))
 const DashboardHomePage = lazy(() => import('@/pages/dashboard/HomePage'))
 const DesignsPage = lazy(() => import('@/pages/dashboard/DesignsPage'))
@@ -38,6 +29,11 @@ const StudioIntakePage = lazy(() =>
   import('@/features/studio/components/StudioIntakePage').then((m) => ({ default: m.StudioIntakePage }))
 )
 
+function OldShopAddress() {
+  const { pathname, search, hash } = useLocation()
+  return <Navigate to={pathname.replace(/^\/shop/, '') + search + hash} replace />
+}
+
 const page = (element: React.ReactNode) => <Suspense fallback={<PageLoader />}>{element}</Suspense>
 
 
@@ -49,26 +45,18 @@ export const routes: RouteObject[] = [
       {
         element: <MarketingLayout />,
         children: [
-          { index: true, element: <Navigate to="/shop" replace /> },
           { path: 'templates', element: <TemplatesPage /> },
           { path: 'templates/:slug', element: <TemplateDetailPage /> },
           { path: 'features', element: <FeaturesPage /> },
-          { path: 'faq', element: <FaqPage /> },
-          { path: 'contact', element: <ContactPage /> },
-          { path: '*', element: <NotFoundPage /> },
         ],
       },
-      {
-        element: <AuthLayout />,
-        children: [
-          { path: 'login', element: <LoginPage /> },
-          { path: 'signup', element: <SignupPage /> },
-          { path: 'forgot-password', element: <ForgotPasswordPage /> },
-          { path: 'reset-password', element: <ResetPasswordPage /> },
-          { path: 'verify-email', element: <VerifyEmailPage /> },
-        ],
-      },
-      { path: 'shop/*', element: page(<SiteApp />) },
+      // there is no account in this site: the old login and sign-up addresses lead to the shop
+      ...['login', 'signup', 'forgot-password', 'reset-password', 'verify-email'].map((path) => ({ path, element: <Navigate to="/" replace /> })),
+      // the old /shop addresses lead to the same page without it
+      { path: 'shop/*', element: <OldShopAddress /> },
+      { path: 'shop', element: <Navigate to="/" replace /> },
+      // the shop is the site itself: everything not listed here is one of its pages (or its own not-found page)
+      { path: '*', element: page(<SiteApp />) },
       { path: 'create', element: page(<CreatePage />) },
       { path: 'local/:localId', element: page(<LocalEditorPage />) },
       { path: 'embed/editor', element: page(<EmbedEditorPage />) },

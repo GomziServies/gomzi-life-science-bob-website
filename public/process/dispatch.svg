@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 440" fill="none" role="img" aria-label="A five day calendar and a delivery truck">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="68%"><stop offset="0" stop-color="#fcfef5"/><stop offset="1" stop-color="#e1edb6"/></radialGradient>
+  </defs>
+  <rect width="520" height="440" rx="44" fill="url(#bg)"/>
+  <rect x="64" y="52" width="190" height="170" rx="22" fill="#fff" stroke="#c9dc86" stroke-width="2"/>
+  <path d="M64 74a22 22 0 0 1 22-22h146a22 22 0 0 1 22 22v34H64z" fill="#99c229"/>
+  <rect x="102" y="40" width="10" height="26" rx="5" fill="#5c7a10"/><rect x="206" y="40" width="10" height="26" rx="5" fill="#5c7a10"/>
+  <text x="159" y="94" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="16" fill="#1a2504" letter-spacing="2">DISPATCH</text>
+  <text x="159" y="178" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="64" fill="#121518">5</text>
+  <text x="159" y="204" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="16" fill="#5c7a10" letter-spacing="3">DAYS</text>
+  <g fill="#99c229"><circle cx="102" cy="128" r="6"/><circle cx="130" cy="128" r="6"/><circle cx="158" cy="128" r="6"/><circle cx="186" cy="128" r="6"/><circle cx="214" cy="128" r="6"/></g>
+  <g transform="translate(300 74)"><circle r="30" fill="#99c229"/><path d="M-12 0l9 10 17-20" stroke="#1a2504" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <text x="344" y="70" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="15" fill="#121518">Label approved</text>
+  <text x="344" y="92" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="15" fill="#121518">Order confirmed</text>
+  <rect x="40" y="372" width="440" height="8" rx="4" fill="#9db25a" opacity=".5"/>
+  <rect x="96" y="238" width="206" height="106" rx="10" fill="#fff" stroke="#5c7a10" stroke-width="4"/>
+  <path d="M302 270h56l42 44v30H302z" fill="#99c229" stroke="#5c7a10" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M318 280h34l26 28h-60z" fill="#e6f1bb"/>
+  <rect x="114" y="258" width="50" height="40" rx="5" fill="#e7c98a"/><rect x="170" y="276" width="42" height="22" rx="5" fill="#e7c98a"/><rect x="222" y="252" width="62" height="46" rx="5" fill="#e7c98a"/>
+  <rect x="134" y="258" width="10" height="40" fill="#fff" opacity=".4"/><rect x="242" y="252" width="10" height="46" fill="#fff" opacity=".4"/>
+  <text x="199" y="328" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="15" fill="#5c7a10" letter-spacing="2">YOUR BRAND</text>
+  <g><circle cx="156" cy="352" r="22" fill="#121518"/><circle cx="156" cy="352" r="9" fill="#cfd6d0"/><circle cx="352" cy="352" r="22" fill="#121518"/><circle cx="352" cy="352" r="9" fill="#cfd6d0"/></g>
+  <path d="M410 300h40M418 322h32" stroke="#5c7a10" stroke-opacity=".4" stroke-width="5" stroke-linecap="round"/>
+  <path d="M452 140l4 11 11 4-11 4-4 11-4-11-11-4 11-4z" fill="#99c229" opacity=".6"/>
+</svg>

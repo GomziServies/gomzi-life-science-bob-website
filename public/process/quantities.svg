@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 440" fill="none" role="img" aria-label="Stacked cartons with the minimum order tags">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="68%"><stop offset="0" stop-color="#fcfef5"/><stop offset="1" stop-color="#e1edb6"/></radialGradient>
+    <linearGradient id="box" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#e7c98a"/><stop offset="1" stop-color="#cfa95c"/></linearGradient>
+  </defs>
+  <rect width="520" height="440" rx="44" fill="url(#bg)"/>
+  <ellipse cx="260" cy="392" rx="200" ry="14" fill="#5c7a10" opacity=".16"/>
+  <rect x="56" y="318" width="408" height="22" rx="6" fill="#8a6b3a"/>
+  <rect x="76" y="340" width="40" height="40" rx="4" fill="#6f5530"/><rect x="240" y="340" width="40" height="40" rx="4" fill="#6f5530"/><rect x="404" y="340" width="40" height="40" rx="4" fill="#6f5530"/>
+  <g>
+    <rect x="70" y="218" width="120" height="100" rx="6" fill="url(#box)"/><rect x="118" y="218" width="24" height="100" fill="#fff" opacity=".35"/>
+    <rect x="200" y="218" width="120" height="100" rx="6" fill="url(#box)"/><rect x="248" y="218" width="24" height="100" fill="#fff" opacity=".35"/>
+    <rect x="330" y="218" width="120" height="100" rx="6" fill="url(#box)"/><rect x="378" y="218" width="24" height="100" fill="#fff" opacity=".35"/>
+    <rect x="135" y="118" width="120" height="100" rx="6" fill="url(#box)"/><rect x="183" y="118" width="24" height="100" fill="#fff" opacity=".35"/>
+    <rect x="265" y="118" width="120" height="100" rx="6" fill="url(#box)"/><rect x="313" y="118" width="24" height="100" fill="#fff" opacity=".35"/>
+  </g>
+  <g font-family="Arial, Helvetica, sans-serif" font-weight="800">
+    <rect x="92" y="262" width="76" height="30" rx="8" fill="#fff"/><text x="130" y="283" text-anchor="middle" font-size="15" fill="#121518">50 kg</text>
+    <rect x="352" y="262" width="76" height="30" rx="8" fill="#fff"/><text x="390" y="283" text-anchor="middle" font-size="15" fill="#121518">50 pcs</text>
+  </g>
+  <g transform="translate(260 70)"><rect x="-86" y="-24" width="172" height="48" rx="24" fill="#99c229"/><text x="0" y="6" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="17" fill="#1a2504">Mix flavours</text></g>
+  <path d="M446 96l4 11 11 4-11 4-4 11-4-11-11-4 11-4z" fill="#99c229" opacity=".6"/>
+  <circle cx="64" cy="100" r="6" fill="#99c229" opacity=".45"/>
+</svg>
