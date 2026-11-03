@@ -56,7 +56,13 @@ const QA: [string, string][] = [
 const FOR: [string, string][] = [
   ['Fitness creators', 'You have the audience. We give you the product. Launch your own line and own your revenue.'],
   ['Gym owners', 'Build loyalty and margin with a house brand your members trust and repurchase every month.'],
+  ['Personal trainers', 'Give your clients a protein or supplement with your own name on it, and recommend what you trust.'],
+  ['Dietitians and nutritionists', 'Offer supplements that fit your plans, under your own brand, instead of sending clients elsewhere.'],
   ['Pharma distributors', 'Add high-margin wellness products to your portfolio, with export-ready certifications.'],
+  ['Startups and new brands', 'Start small, with low minimum orders and ready formulations, and launch without building a factory.'],
+  ['Brands adding supplements', 'Already selling in fitness, food or wellness? Add a supplement line made, filled and labelled for you.'],
+  ['E-commerce sellers', 'Sell your own branded supplements on your store or marketplaces, with a label you design yourself.'],
+  ['Quick-commerce brands', 'Launch pack sizes and sachets built for fast-moving, small-basket orders, under your brand.'],
 ];
 
 /** The company: why it exists, who founded it, how it grew, what it stands for and how it checks its quality. */
