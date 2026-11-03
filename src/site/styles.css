@@ -2234,3 +2234,15 @@ div.editor-shell > .editor-opening { position: static; flex: 1; }
   .clp-cta { flex-direction: column; align-items: stretch; }
   .clp-cta .btn { width: 100%; justify-content: center; text-align: center; }
 }
+
+/* ---- phones: the range tiles keep the picture and its title apart, with a soft white fade between them ---- */
+@media (max-width: 600px) {
+  .cats .cat { aspect-ratio: auto; display: flex; flex-direction: column; }
+  .cats .cat-art { position: relative; inset: auto; flex: none; height: 150px; }
+  .cats .cat-pic { bottom: 24px; max-width: 90%; max-height: calc(100% - 24px); }
+  /* the tall mass gainer jar is drawn smaller, so it matches the others */
+  .cats .cat[data-c='gainer'] .cat-pic { max-height: calc(86% - 24px); }
+  .cats .cat-label { position: relative; margin-top: -34px; padding: 40px 10px 14px; background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .86) 42%, rgba(255, 255, 255, .96) 100%); }
+  .cats .cat-label b { font-size: .95rem; }
+  .cats .cat-label small { font-size: .74rem; }
+}

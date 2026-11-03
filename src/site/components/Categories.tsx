@@ -18,7 +18,7 @@ export function Categories() {
             const shown = c.ids.slice(0, 3).map((id) => productById(id)).filter((p): p is NonNullable<ReturnType<typeof productById>> => !!p);
             const count = c.mto ? null : c.ids.filter((id) => productById(id) && !productById(id)!.hidden).length;
             return (
-              <Link key={c.id} to={c.mto ? '/products?c=mto' : `/products?c=${c.id}`} className="cat" style={{ ['--tint' as string]: tintOf(shown[0]?.id ?? 'wp57') }}>
+              <Link key={c.id} data-c={c.id} to={c.mto ? '/products?c=mto' : `/products?c=${c.id}`} className="cat" style={{ ['--tint' as string]: tintOf(shown[0]?.id ?? 'wp57') }}>
                 <span className="cat-art" aria-hidden="true">
                   {PICTURE[c.id] ? (
                     <img className="cat-pic" src={`/categories/${c.id}.webp`} alt="" loading="lazy" decoding="async" />

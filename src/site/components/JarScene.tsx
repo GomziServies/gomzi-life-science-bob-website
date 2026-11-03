@@ -352,7 +352,8 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
     renderer.setPixelRatio(Math.min(Math.max(window.devicePixelRatio || 1, 2), snapRef.current ? 2.5 : 3));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.NoToneMapping; // the colours of the label are shown as they were printed
-    renderer.domElement.style.cssText = 'display:block;width:100%;height:100%;touch-action:pan-y;cursor:grab';
+    // a pack that can be zoomed and turned in every direction takes all touches itself: the page behind neither scrolls nor zooms
+    renderer.domElement.style.cssText = `display:block;width:100%;height:100%;touch-action:${zoomable ? 'none' : 'pan-y'};cursor:grab`;
     el.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
@@ -680,9 +681,11 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
     const onWheel = (e: WheelEvent) => {
       if (!zoomable) return;
       const before = zoomRef.current;
+      // scrolling down over a pack that is not zoomed has nothing to zoom out, so the page scrolls on; in every other case the wheel belongs to the pack
+      if (before === 1 && e.deltaY > 0 && !e.ctrlKey) return;
+      e.preventDefault();
       const box = el.getBoundingClientRect();
-      applyZoom(before * Math.exp(-e.deltaY * 0.002), (e.clientX - box.left) / box.width - 0.5, (e.clientY - box.top) / box.height - 0.5);
-      if (zoomRef.current !== before) e.preventDefault();
+      applyZoom(before * Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.002)), (e.clientX - box.left) / box.width - 0.5, (e.clientY - box.top) / box.height - 0.5);
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     // two fingers pinch it, and moving them together moves the view
@@ -709,6 +712,9 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
       pinch = now;
       mid = c;
     };
+    const noGesture = (e: Event) => zoomable && e.preventDefault();
+    el.addEventListener('gesturestart', noGesture);
+    el.addEventListener('gesturechange', noGesture);
     el.addEventListener('touchstart', onTouchStart, { passive: true });
     el.addEventListener('touchmove', onTouchMove, { passive: false });
     // double click (or double tap) brings it back
@@ -793,7 +799,7 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
       yaw += dx * 0.009;
       if (zoomable) {
         // dragging up or down looks at the pack from below or above
-        pitchRef.current = Math.max(-0.5, Math.min(0.85, pitchRef.current + dy * 0.006));
+        pitchRef.current = Math.max(-0.8, Math.min(1.1, pitchRef.current + dy * 0.006));
         refit.current();
       }
       // Filtered velocity for smooth release momentum
@@ -843,7 +849,7 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
         velocity *= 0.91;
         from = yaw;
         t0 = now;
-      } else if (now > resumeAt && !reduce && autoRef.current) {
+      } else if (now > resumeAt && !reduce && autoRef.current && zoomRef.current === 1 && pitchRef.current === 0) {
         // Smooth auto-turn between panels
         const target = angleOf(step + 1);
         const since = now - t0;
@@ -1014,6 +1020,8 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
       renderer.domElement.remove();
       api.current = null;
       el.removeEventListener('wheel', onWheel);
+      el.removeEventListener('gesturestart', noGesture);
+      el.removeEventListener('gesturechange', noGesture);
       el.removeEventListener('touchstart', onTouchStart);
       el.removeEventListener('touchmove', onTouchMove);
       el.removeEventListener('dblclick', onDouble);
