@@ -57,7 +57,7 @@ export function Product3DModal({
     ? {
         image: displayUrl,
         thumb: banner.thumbnail || displayUrl,
-        title: `${product.name} Banner`,
+        title: `${product.name} label`,
         slug: banner.templateSlug,
       }
     : null;
@@ -99,7 +99,7 @@ export function Product3DModal({
             autoTurn={false}
           />
           <PackToggle className="pmodal-packs" product={product} pack={pack} onPack={setPack} />
-          <span className="pmodal-hint">👆 Drag horizontally to rotate 360° and inspect all sides</span>
+          <span className="pmodal-hint">Drag to turn it all the way round</span>
         </div>
 
         {/* Product and Banner Controls */}
@@ -129,24 +129,24 @@ export function Product3DModal({
             )}
           </div>
 
-          {/* Banner Status Card */}
+          {/* The label on the pack */}
           <div className="pmodal-banner-status">
             <div className="banner-status-head">
-              <span className="spec-label">Applied Banner:</span>
+              <span className="spec-label">Your label</span>
               {appliedBanner ? (
-                <span className="badge done">✓ Custom Banner Active</span>
+                <span className="badge done">On the pack</span>
               ) : (
-                <span className="badge">Standard Preview</span>
+                <span className="badge">Sample label</span>
               )}
             </div>
 
             {appliedBanner ? (
               <div className="banner-status-body">
                 <div className="banner-thumb-box">
-                  <img src={appliedBanner.thumb || appliedBanner.image} alt="Applied banner preview" />
+                  <img src={appliedBanner.thumb || appliedBanner.image} alt="Your label" />
                 </div>
                 <div className="banner-info-text">
-                  <p className="fine">This custom banner is rendered directly onto the 3D model above.</p>
+                  <p className="fine">Your label is wrapped on the pack. Turn it to see every side.</p>
                   {banner?.savedAt ? (
                     <span className="muted fine">
                       Saved {new Date(banner.savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -156,7 +156,7 @@ export function Product3DModal({
               </div>
             ) : (
               <p className="fine muted">
-                No custom banner applied yet. You can design one in the editor with your brand name, logo, and artwork.
+                You have not saved a label for this product yet. The pack shows a sample label. Design yours in the studio with your brand name, logo and artwork.
               </p>
             )}
           </div>
@@ -164,7 +164,7 @@ export function Product3DModal({
           {/* Action Buttons */}
           <div className="modal-actions" style={{ marginTop: 'auto', paddingTop: '16px' }}>
             <button type="button" className="btn btn-lime" onClick={onEdit}>
-              {appliedBanner ? '✏️ Edit This Banner' : '✨ Customize / Design Banner'}
+              {appliedBanner ? 'Edit this label' : 'Design your label'}
             </button>
             <button type="button" className="btn btn-ghost" onClick={onClose}>
               Close Preview

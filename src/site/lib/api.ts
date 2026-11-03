@@ -55,7 +55,7 @@ export async function uploadFile(file: Blob, name: string): Promise<string> {
 }
 
 /** A small JPEG data URL of a banner PNG (about 480 px wide), cheap enough to keep in localStorage. */
-export async function makeThumbnail(png: Blob, width = 1200): Promise<string | undefined> {
+export async function makeThumbnail(png: Blob, width = 2400): Promise<string | undefined> {
   try {
     const bitmap = await createImageBitmap(png);
     const scale = Math.min(1, width / bitmap.width);
@@ -67,14 +67,14 @@ export async function makeThumbnail(png: Blob, width = 1200): Promise<string | u
     ctx.fillStyle = '#fff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL('image/jpeg', 0.85);
+    return canvas.toDataURL('image/jpeg', 0.9);
   } catch {
     return undefined;
   }
 }
 
 // -- Final submit: an inquiry with the products and the label picked for each --
-export async function submitInquiry(customer: Customer, cart: CartLine[], banners: Record<string, Banner>): Promise<string> {
+export async function submitInquiry(customer: Customer, cart: CartLine[], banners: Record<string, Banner>): Promise<{ leadId: string; emailSent: boolean }> {
   const products = cart.map((line) => {
     const product = productById(line.productId)!;
     const banner = banners[line.productId];
@@ -110,8 +110,9 @@ export async function submitInquiry(customer: Customer, cart: CartLine[], banner
       products,
     }),
   });
-  const body = await json<{ data?: { lead_id: string } }>(res);
-  return body.data!.lead_id;
+  const body = await json<{ data?: { lead_id: string; email_sent?: boolean } }>(res);
+  // the server e-mails the customer their products and labels as it saves the inquiry, and says whether that went
+  return { leadId: body.data!.lead_id, emailSent: body.data!.email_sent === true };
 }
 
 // -- Banner templates from the design-editor gallery --
@@ -161,6 +162,8 @@ export interface GalleryBanner {
   height: number;
   /** A ready pack label that already carries its own brand: no logo is placed on it. */
   ownLogo?: boolean;
+  /** The picture to wrap while the sharp one loads, when `thumb` is not a small copy of the wrap (a ready pack label). */
+  lowImage?: string;
 }
 
 /** A template's picture: from the S3 bucket when its address is one of the company's file links, otherwise from the editor's media folder. */

@@ -49,8 +49,8 @@ export function CustomizePage() {
     <section className="section">
       <div className="wrap narrow">
         <Stepper current={3} />
-        <span className="eyebrow">Design your banners</span>
-        <h2>Design a banner for each product</h2>
+        <span className="eyebrow">Pick your labels</span>
+        <h2>Pick a label for each product</h2>
         <p>Choose a template or generate one with AI, edit your logo and text, then save. {done} of {cart.length} done.</p>
         <div className="progress" aria-hidden>
           <i style={{ width: `${(done / cart.length) * 100}%` }} />
@@ -66,7 +66,7 @@ export function CustomizePage() {
                 {/* 3D-enabled jar preview thumbnail with corner badge */}
                 <div
                   className="jar-thumb-container"
-                  title="Click to view realistic 3D model with banner"
+                  title="Click to see this product in 3D with your label"
                   onClick={() => setPreviewProduct(p)}
                 >
                   <ProductJar
@@ -96,7 +96,7 @@ export function CustomizePage() {
                 {/* Banner 2D preview, clickable to inspect in 3D */}
                 <div
                   className={`thumb wide ${bannerPic ? 'clickable-preview' : ''}`}
-                  title={bannerPic ? 'Click to view 3D model with this banner' : undefined}
+                  title={bannerPic ? 'Click to see this label in 3D' : undefined}
                   onClick={() => {
                     if (bannerPic) setPreviewProduct(p);
                   }}
@@ -104,13 +104,13 @@ export function CustomizePage() {
                 >
                   {bannerPic ? (
                     <>
-                      <img src={bannerPic} alt={`${p.name} banner`} />
-                      <span className="thumb-3d-tag">👁 3D</span>
+                      <img src={bannerPic} alt={`${p.name} label`} />
+                      <span className="thumb-3d-tag">3D</span>
                     </>
                   ) : isTeamBanner(banner) ? (
                     <span className="team-thumb">Made with<br />{TEAM_NAME}</span>
                   ) : (
-                    'No banner yet'
+                    'No label yet'
                   )}
                 </div>
 
@@ -121,15 +121,15 @@ export function CustomizePage() {
                       type="button"
                       className="link-preview-3d"
                       onClick={() => setPreviewProduct(p)}
-                      title="Open 3D preview with banner"
+                      title="Open 3D preview with your label"
                     >
-                      👁 3D View
+                      3D view
                     </button>
                   </div>
                   <span>{l.flavour} · {l.quantity} {p.unit}</span>
                   <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
                     {banner ? (
-                      <span className="badge done">{isTeamBanner(banner) ? `Made with ${TEAM_NAME}` : `Banner saved (${banner.origin === 'ai' ? 'AI' : 'template'})`}</span>
+                      <span className="badge done">{isTeamBanner(banner) ? `Made with ${TEAM_NAME}` : `Label saved (${banner.origin === 'ai' ? 'AI' : 'template'})`}</span>
                     ) : (
                       <span className="badge">Pending</span>
                     )}
@@ -143,13 +143,13 @@ export function CustomizePage() {
                     onClick={() => setPreviewProduct(p)}
                     title="View 3D product preview"
                   >
-                    👁 3D View
+                    3D view
                   </button>
                   <Link
                     className={`btn btn-sm ${banner ? 'btn-ghost' : 'btn-lime'}`}
                     to={`/customize/${p.id}?returnTo=${encodeURIComponent(`/customize?preview=${p.id}`)}`}
                   >
-                    {banner ? 'Change banner' : 'Choose banner'}
+                    {banner ? 'Change label' : 'Choose label'}
                   </Link>
                 </div>
               </div>
@@ -161,7 +161,7 @@ export function CustomizePage() {
           <button className="btn btn-lime" disabled={!allBannersDone} onClick={() => nav('/review')}>
             Review and submit
           </button>
-          {!allBannersDone && <span style={{ marginLeft: 12 }} className="badge">Save a banner for every product to continue</span>}
+          {!allBannersDone && <span style={{ marginLeft: 12 }} className="badge">Save a label for every product to continue</span>}
         </p>
       </div>
 

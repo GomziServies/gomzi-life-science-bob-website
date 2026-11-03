@@ -73,7 +73,14 @@ function load(): OrderState {
       const saved = JSON.parse(raw);
       // a label from the old graphics-team option has no picture: it is dropped
       const banners = Object.fromEntries(Object.entries(saved.banners ?? {}).filter(([, b]) => !(b as { graphicsTeam?: boolean }).graphicsTeam));
-      return { cart: [], customer: EMPTY_CUSTOMER, ...saved, banners };
+      // a product that is no longer in the range (an old saved inquiry) is dropped, so no page ever meets a line it cannot show
+      const cart = (Array.isArray(saved.cart) ? saved.cart : []).filter((l: { productId?: string }) => !!l?.productId && !!productById(l.productId))
+        // a flavour that is no longer offered (an old saved inquiry) becomes the product's first flavour
+        .map((l: { productId: string; flavour?: string }) => {
+          const p = productById(l.productId)!;
+          return p.flavours.includes(l.flavour ?? '') ? l : { ...l, flavour: p.flavours[0] };
+        });
+      return { customer: EMPTY_CUSTOMER, ...saved, cart, banners };
     }
   } catch {
     /* storage unavailable: start empty */

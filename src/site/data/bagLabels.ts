@@ -10,6 +10,8 @@ const L = (slug: string, title: string, width: number): GalleryBanner => ({
   width,
   height: 1500,
   ownLogo: true,
+  // the small list picture is only the front; the pack is wrapped with the whole front-and-back picture straight away
+  lowImage: `/labels/bag/${slug}.webp`,
 });
 
 const SACHETS: GalleryBanner[] = [

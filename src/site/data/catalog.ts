@@ -23,15 +23,13 @@ export interface Product {
 }
 
 const P3 = ['Chocolate', 'Mawa Kulfi', 'Coffee'];
-// Whey Protein's flavours: the first three are in stock today (see STOCK); the rest are the flavours of the company's own label library.
-// The six flavours the brochure lists for every protein powder (Yeast Protein also has Buttermilk).
+// The six flavours the brochure lists for the protein powders. Whey Protein, Plant Protein and Yeast Protein all use this same list.
 const POWDER_FLAVOURS = ['Mawa Kulfi', 'Chocolate', 'Cookies & Cream', 'Coffee', 'Belgian Chocolate', 'Brownie Chocolate'];
 // The peanut butters of the brochure (smooth, crunchy and high-protein).
 const PEANUT_FLAVOURS = ['Natural (Smooth/Crunch)', 'Chocolate (Smooth/Crunch)', 'Classic (Smooth/Crunch)', 'Elaichi (Smooth/Crunch)', 'America Classic (Smooth/Crunch)', 'White Chocolate Crispy', 'White Chocolate Crispy (High Protein)', 'Chocolate Crispy', 'Chocolate Crispy (High Protein)', 'Jaggery (High Protein)', 'Mango Chia Seeds'];
-const WHEY_FLAVOURS = ['Chocolate', 'Mawa Kulfi', 'Coffee', 'Belgian Chocolate', 'Cappuccino', 'Vanilla', 'Cookies & Cream', 'Salted Caramel', 'Banana', 'Strawberry', 'Mango', 'Mint Chocolate'];
 
 export const CATALOG: Product[] = [
-  { id: 'wp57', templateCategory: 'whey-protein', group: 'protein', name: 'Whey Protein', sub: '', unit: 'kg', flavours: WHEY_FLAVOURS, tag: 'PROTEIN POWDER' },
+  { id: 'wp57', templateCategory: 'whey-protein', group: 'protein', name: 'Whey Protein', sub: '', unit: 'kg', flavours: POWDER_FLAVOURS, tag: 'PROTEIN POWDER' },
   { id: 'wp40', templateCategory: 'whey-protein', group: 'protein', hidden: true, name: 'Whey Protein 40%', sub: '40% protein', unit: 'kg', flavours: P3, tag: '40% PROTEIN' },
   { id: 'wp30', templateCategory: 'whey-protein', group: 'protein', hidden: true, name: 'Whey Protein 30%', sub: '30% protein', unit: 'kg', flavours: P3, tag: '30% PROTEIN' },
   { id: 'wpi', templateCategory: 'whey-protein', group: 'protein', name: 'Whey Protein Isolate', sub: '90% protein', unit: 'kg', flavours: POWDER_FLAVOURS, tag: '90% ISOLATE' },
@@ -39,7 +37,7 @@ export const CATALOG: Product[] = [
   { id: 'wp60', templateCategory: 'whey-protein', group: 'protein', name: 'Whey Protein 60%', sub: '60% protein · economical', unit: 'kg', flavours: POWDER_FLAVOURS, tag: '60% PROTEIN' },
   { id: 'gainer', templateCategory: 'whey-protein', group: 'protein', name: 'Mass Gainer', sub: 'Recovery blend · BCAA 2:1:1', unit: 'kg', flavours: POWDER_FLAVOURS, tag: 'MASS GAINER' },
   { id: 'wpe', templateCategory: 'whey-protein', group: 'protein', name: 'Whey Protein Blend', sub: 'Economy range', unit: 'kg', flavours: P3, tag: 'DAILY PROTEIN' },
-  { id: 'yeast', templateCategory: 'whey-protein', group: 'protein', name: 'Yeast Protein', sub: 'Vegan protein', unit: 'kg', flavours: [...POWDER_FLAVOURS, 'Buttermilk'], tag: 'VEGAN PROTEIN' },
+  { id: 'yeast', templateCategory: 'whey-protein', group: 'protein', name: 'Yeast Protein', sub: 'Vegan protein', unit: 'kg', flavours: POWDER_FLAVOURS, tag: 'VEGAN PROTEIN' },
   { id: 'plant', templateCategory: 'whey-protein', group: 'protein', name: 'Plant Protein', sub: 'Vegan protein', unit: 'kg', flavours: POWDER_FLAVOURS, tag: 'PLANT BASED' },
   { id: 'cre', templateCategory: 'creatine', group: 'sports', name: 'Creatine Monohydrate', sub: 'Unflavoured or Lemon · 250 g jar', unit: 'jar', flavours: ['Unflavoured', 'Lemon'], tag: 'MONOHYDRATE', weight: '250 G' },
   { id: 'bcaa', templateCategory: 'bcaa-amino', group: 'sports', name: 'BCAA 2:1:1', sub: 'Tangy Orange · 250 g jar', unit: 'jar', flavours: ['Tangy Orange'], tag: '2:1:1 RECOVERY', weight: '250 G' },

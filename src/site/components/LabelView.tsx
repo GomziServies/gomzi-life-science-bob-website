@@ -179,6 +179,7 @@ export interface BannerLike {
   width?: number;
   height?: number;
   ownLogo?: boolean;
+  lowImage?: string;
 }
 
 interface Props {
@@ -215,8 +216,8 @@ export function LabelView({ spec, mode, px = 2600, className, banner, pack = 'ja
   const lastKind = useRef<string>('');
   // only a picture that belongs to the label now wanted counts; one left over from the label before it never shows
   const realRaw = useBannerCanvas(banner?.image, banner?.thumb);
-  const lowRaw = useBannerCanvas(banner?.thumb);
-  const mine = (r: { url: string } | null) => (r && banner && (r.url === banner.image || r.url === banner.thumb) ? r : null);
+  const lowRaw = useBannerCanvas(banner?.lowImage ?? banner?.thumb);
+  const mine = (r: { url: string } | null) => (r && banner && (r.url === banner.image || r.url === banner.thumb || r.url === banner.lowImage) ? r : null);
   const real = mine(realRaw) as typeof realRaw;
   const low = mine(lowRaw) as typeof lowRaw;
   const shown = real ?? low;

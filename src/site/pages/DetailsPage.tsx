@@ -130,10 +130,14 @@ export function DetailsPage() {
         <Stepper current={2} />
         <div className="details-layout">
           <form className="details-form" onSubmit={submit} noValidate>
-            <h2>Your inquiry and details</h2>
+            <header className="dt-head">
+              <span className="eyebrow">Step 2 of 4</span>
+              <h2>Your inquiry and details</h2>
+              <p className="lede">Check your products and quantities, then tell us who the order is for. Next you pick a label for each product.</p>
+            </header>
 
             <div className="panel">
-              <h3>Products</h3>
+              <h3><span className="dt-n">1</span>Your products</h3>
               <div className="qty-list">
                 {cart.map((l) => {
                   const p = CATALOG.find((x) => x.id === l.productId)!;
@@ -144,7 +148,7 @@ export function DetailsPage() {
                       {/* Product jar with corner 3D eye badge - entire jar clickable for 3D inspection */}
                       <div
                         className="jar-thumb-container"
-                        title="Click to view realistic 3D model with banner"
+                        title="Click to see this product in 3D with your label"
                         onClick={() => setPreviewProduct(p)}
                       >
                         <ProductJar
@@ -178,9 +182,9 @@ export function DetailsPage() {
                             type="button"
                             className="link-preview-3d"
                             onClick={() => setPreviewProduct(p)}
-                            title="Open 3D preview with banner"
+                            title="Open 3D preview with your label"
                           >
-                            👁 3D View
+                            3D view
                           </button>
                         </div>
                         <span className="muted">per {p.unit}</span>
@@ -203,7 +207,7 @@ export function DetailsPage() {
                           </div>
                         ) : banner ? (
                           <div className="applied-pill">
-                            <span className="badge done">✓ Banner Applied</span>
+                            <span className="badge done">✓ Label added</span>
                             <button
                               type="button"
                               className="linkbtn mini-edit-link"
@@ -215,7 +219,7 @@ export function DetailsPage() {
                                 )
                               }
                             >
-                              Edit Banner
+                              Edit label
                             </button>
                           </div>
                         ) : (
@@ -231,7 +235,7 @@ export function DetailsPage() {
                                 )
                               }
                             >
-                              + Customize Banner
+                              + Add a label
                             </button>
                           </div>
                         )}
@@ -301,9 +305,28 @@ export function DetailsPage() {
             </div>
 
             <div className="panel">
-              <h3>Your information</h3>
+              <h3><span className="dt-n">2</span>Your information</h3>
+              <p className="dt-group">About you</p>
               <div className="form-grid">
-                {FIELDS.map(([key, label, auto]) => (
+                {FIELDS.filter(([k]) => ['fullName', 'phone', 'altPhone', 'email'].includes(k)).map(([key, label, auto]) => (
+                  <div className="field" key={key}>
+                    <label htmlFor={key}>{label}</label>
+                    <input
+                      id={key}
+                      autoComplete={auto}
+                      inputMode={key === 'phone' || key === 'altPhone' || key === 'pincode' ? 'numeric' : undefined}
+                      value={customer[key]}
+                      maxLength={key === 'brandName' ? 16 : undefined}
+                      disabled={verified && key === 'phone'}
+                      aria-invalid={key === 'phone' && customer.phone.length > 0 && !phoneOk}
+                      onChange={(e) => setCustomer({ [key]: e.target.value })}
+                    />
+                  </div>
+                ))}
+              </div>
+              <p className="dt-group">Your brand and delivery</p>
+              <div className="form-grid">
+                {FIELDS.filter(([k]) => ['brandName', 'city', 'pincode'].includes(k)).map(([key, label, auto]) => (
                   <div className="field" key={key}>
                     <label htmlFor={key}>{label}</label>
                     <input
@@ -337,8 +360,8 @@ export function DetailsPage() {
 
               <div className="verify">
                 <div>
-                  <b>Mobile verification</b>
-                  <span className="muted">We confirm your number with a one-time password.</span>
+                  <b>Verify your mobile</b>
+                  <span className="muted">We send a one-time password to confirm your number.</span>
                 </div>
                 {verified ? (
                   <span className="badge done">✓ Verified</span>
@@ -377,7 +400,7 @@ export function DetailsPage() {
 
             <div className="form-actions">
               <button className="btn btn-lime" disabled={missing.length > 0}>
-                Continue: design your banners
+                Continue: pick your labels
               </button>
               {missing.length > 0 && (
                 <span className="need">
@@ -390,25 +413,30 @@ export function DetailsPage() {
 
           <aside className="details-side">
             <div className="panel sticky">
-              <h3>Your products</h3>
+              <h3>Your inquiry</h3>
               <ul className="mini-list">
                 {cart.map((l) => {
                   const p = CATALOG.find((x) => x.id === l.productId)!;
                   return (
                     <li key={l.productId}>
-                      <span>
-                        {p.name} <small className="muted">× {l.quantity} {p.unit}</small>
-                      </span>
+                      <span>{p.name}</span>
+                      <b>{l.quantity} {p.unit}</b>
                     </li>
                   );
                 })}
               </ul>
+              <ol className="dt-next" aria-label="What happens next">
+                <li><b>Details</b><span>You are here</span></li>
+                <li><b>Labels</b><span>Pick or design a label for each product</span></li>
+                <li><b>Send</b><span>We reply with prices and the next steps</span></li>
+              </ol>
+              <p className="dt-help">Need a hand? <Link to="/contact">Talk to our team</Link></p>
             </div>
           </aside>
         </div>
       </div>
 
-      {/* 3D Preview Modal: rotatable, displays applied banner, and has direct Edit Banner button */}
+      {/* 3D Preview Modal: rotatable, shows the chosen label, with a direct way to edit it */}
       {previewProduct && (
         <Product3DModal
           product={previewProduct}

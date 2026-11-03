@@ -12,7 +12,7 @@ const NAMES: Record<Pack, (p: Product) => string> = { jar: (p) => (p.unit === 'k
 /** Pictures of each pack, already taken, so a card that scrolls back into view shows them at once. */
 const shots = new Map<string, string>();
 // change this when the drawing of a pack changes (new caps, new models): older saved pictures are then dropped
-const SHOT_VERSION = 'v3-black-caps';
+const SHOT_VERSION = 'v4-pack-labels';
 const shotKey = (p: Product, flavour: string, banner: GalleryBanner | null | undefined, details: Details, pack: Pack) => JSON.stringify([SHOT_VERSION, p.id, flavour, banner?.slug ?? '', details.brand, pack]);
 
 /** The finished pictures are also kept in the browser's own storage, so a product is drawn in 3D once, not again at every visit or reload. */

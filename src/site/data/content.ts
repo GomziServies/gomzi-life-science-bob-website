@@ -154,7 +154,7 @@ export const BROCHURE: Record<string, BrochureInfo> = {
   wpe: whey('Whey protein blend for everyday fitness.', ['High', 'Moderate', 'Moderate', 'Medium', 'Mid-range', 'General fitness', 'Protein powders']),
   gainer: { about: 'A mass gainer with a recovery blend of BCAA 2:1:1 for muscle size and recovery.' },
   plant: { about: 'A vegan, plant-based protein with a protein-rich blend.' },
-  yeast: { about: 'A vegan yeast protein, also available in Buttermilk.' },
+  yeast: { about: 'A vegan yeast protein, in the same six flavours as our whey protein.' },
   pre: {
     about: 'Boosts energy, focus, endurance and workout intensity before training. Used by gym users, athletes and nutrition brands.',
     lists: [
