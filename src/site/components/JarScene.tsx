@@ -23,6 +23,8 @@ export interface JarSceneProps {
   onUnsupported?: () => void;
   /** Called once with a picture of the finished pack (a PNG) as soon as its model and label are drawn: a product card shows these instead of a live 3D view. */
   onSnapshot?: (dataUrl: string) => void;
+  /** The visitor can zoom the pack in and out right on it: scroll over it, or pinch it. There are no buttons. */
+  zoomable?: boolean;
 }
 
 // Jar shapes, in units of the jar's radius: shoulder height, neck radius, cap radius and height
@@ -300,7 +302,7 @@ function bagFaces(wrap: HTMLCanvasElement, panels: [number, number, number], asp
 }
 
 /** A jar with the label wrapped round it. It flips from panel to panel by itself and can be turned by hand. */
-export default function JarScene({ wrap, mm, kind, jarColor, panels, className, autoTurn = true, onUnsupported, onSnapshot }: JarSceneProps) {
+export default function JarScene({ wrap, mm, kind, jarColor, panels, className, autoTurn = true, onUnsupported, onSnapshot, zoomable = false }: JarSceneProps) {
   const snapRef = useRef(onSnapshot);
   snapRef.current = onSnapshot;
   const host = useRef<HTMLDivElement>(null);
@@ -309,6 +311,14 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
   const autoRef = useRef(autoTurn);
   autoRef.current = autoTurn;
   const api = useRef<{ setWrap: (c: HTMLCanvasElement | null) => void } | null>(null);
+  // how close the camera is: 1 is the whole pack in view
+  const zoomRef = useRef(1);
+  const refit = useRef<() => void>(() => undefined);
+  const applyZoom = (z: number) => {
+    const next = Math.min(2.5, Math.max(1, Math.round(z * 100) / 100));
+    zoomRef.current = next;
+    refit.current();
+  };
 
   useEffect(() => {
     const el = host.current;
@@ -631,14 +641,43 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       const half = Math.tan((camera.fov * Math.PI) / 360);
-      const dist = Math.max((frame * 0.62) / half, (1.35 / half) / camera.aspect);
-      camera.position.set(0, frame * 0.6, dist);
-      camera.lookAt(0, frame * 0.47, 0);
+      const dist = Math.max((frame * 0.62) / half, (1.35 / half) / camera.aspect) / zoomRef.current;
+      // zooming in moves the camera towards the middle of the pack
+      const z = zoomRef.current - 1;
+      camera.position.set(0, frame * (0.6 - 0.13 * z), dist);
+      camera.lookAt(0, frame * (0.47 - 0.05 * z), 0);
       camera.updateProjectionMatrix();
     };
     fit();
+    refit.current = fit;
     const ro = new ResizeObserver(fit);
     ro.observe(el);
+    // scrolling over the pack zooms it; once it cannot zoom any further that way the page scrolls on as usual
+    const onWheel = (e: WheelEvent) => {
+      if (!zoomable) return;
+      const before = zoomRef.current;
+      applyZoom(before * Math.exp(-e.deltaY * 0.002));
+      if (zoomRef.current !== before) e.preventDefault();
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    // two fingers pinch it
+    let pinch = 0;
+    const gap = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    const onTouchStart = (e: TouchEvent) => {
+      pinch = zoomable && e.touches.length === 2 ? gap(e.touches) : 0;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!zoomable || e.touches.length !== 2 || !pinch) return;
+      e.preventDefault();
+      const now = gap(e.touches);
+      applyZoom(zoomRef.current * (now / pinch));
+      pinch = now;
+    };
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    // double click (or double tap) brings it back
+    const onDouble = () => zoomable && applyZoom(1);
+    el.addEventListener('dblclick', onDouble);
 
     // -- the flip: the panels come to the front one by one; dragging turns the jar by hand --
     const centreU = [panels[0] / 2, panels[0] + panels[1] / 2, panels[0] + panels[1] + panels[2] / 2];
@@ -902,6 +941,10 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
       renderer.forceContextLoss();
       renderer.domElement.remove();
       api.current = null;
+      el.removeEventListener('wheel', onWheel);
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('dblclick', onDouble);
     };
     // the jar is rebuilt when its shape or colour changes; the label picture is swapped in below
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -911,5 +954,6 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
     api.current?.setWrap(wrap);
   }, [wrap]);
 
-  return <div ref={host} className={className} />;
+  // data-lenis-prevent: the page's smooth scrolling leaves the wheel alone over the pack, so it can zoom it
+  return <div ref={host} className={className} data-lenis-prevent={zoomable ? '' : undefined} />;
 }

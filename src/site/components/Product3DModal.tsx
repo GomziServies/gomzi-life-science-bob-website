@@ -86,6 +86,7 @@ export function Product3DModal({
         <div className="pmodal-art" style={{ ['--tint' as string]: tintOf(product.id) }}>
           <LabelView
             className="pmodal-3d"
+            zoomable
             mode="3d"
             spec={{
               product,

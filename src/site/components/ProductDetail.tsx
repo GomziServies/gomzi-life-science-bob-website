@@ -121,7 +121,7 @@ export function ProductDetail({ product, flavour, inCart, pack, onPack, onFlavou
           <div className="pd-grid">
             <div className="pd-gallery">
               <div className="pd-stage" style={{ ['--tint' as string]: tintOf(product.id) }}>
-                <LabelView className="pd-3d" mode="3d" spec={{ product, flavour, design: ownDesign(product.id), details, logo: undefined }} banner={labelOnPack(product, shape, label)} waiting={labels === null || (shape === 'jar' && !!label?.ownLogo)} pack={shape} logo={logo || undefined} logoShift={shift} autoTurn={false} onSnapshot={() => notePicture()} />
+                <LabelView className="pd-3d" zoomable mode="3d" spec={{ product, flavour, design: ownDesign(product.id), details, logo: undefined }} banner={labelOnPack(product, shape, label)} waiting={labels === null || (shape === 'jar' && !!label?.ownLogo)} pack={shape} logo={logo || undefined} logoShift={shift} autoTurn={false} onSnapshot={() => notePicture()} />
                 <PackToggle className="pd-packs" product={product} pack={shape} onPack={setShape} />
                 <span className="pd-hint">Drag to turn it and see every side</span>
               </div>

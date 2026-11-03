@@ -71,7 +71,7 @@ export function HeroStage({ details, logo, onLogo, shift, onShift, onEdit, onBan
     <div className="hero-right">
       <div className="stage">
         <div className="blob" aria-hidden />
-        <LabelView spec={spec} mode="3d" className="stage-jar" waiting={banner === null && banners !== null && banners.length > 0 || banners === null} banner={labelOnPack(product, pack, banner)} pack={pack} logo={logo || undefined} logoShift={shift} autoTurn={false} />
+        <LabelView spec={spec} mode="3d" className="stage-jar" zoomable waiting={banner === null && banners !== null && banners.length > 0 || banners === null} banner={labelOnPack(product, pack, banner)} pack={pack} logo={logo || undefined} logoShift={shift} autoTurn={false} />
       </div>
       <div className="packrow"><PackToggle className="stage-packs" product={product} pack={pack} onPack={setPack} /></div>
       <div className="lbox lbox-live">

@@ -197,6 +197,8 @@ interface Props {
   logoShift?: LogoShift;
   /** The 3D pack turns by itself (default); off, it holds still on its front until dragged. */
   autoTurn?: boolean;
+  /** Shows zoom in / zoom out buttons on the 3D pack. */
+  zoomable?: boolean;
   /** Called once with a PNG of the finished 3D pack (see JarScene). */
   onSnapshot?: (dataUrl: string) => void;
   /** A ready label is still on its way: nothing is drawn meanwhile (no built-in design is ever shown instead). */
@@ -206,7 +208,7 @@ interface Props {
 /** The customer's label, either on a 3D jar that flips round or flat, as printed. */
 const NO_SHIFT: LogoShift = { dx: 0, dy: 0 };
 
-export function LabelView({ spec, mode, px = 2600, className, banner, pack = 'jar', logo, logoShift = NO_SHIFT, autoTurn = true, onSnapshot, waiting = false }: Props) {
+export function LabelView({ spec, mode, px = 2600, className, banner, pack = 'jar', logo, logoShift = NO_SHIFT, autoTurn = true, onSnapshot, waiting = false, zoomable = false }: Props) {
   const [broken, setBroken] = useState(false);
   const show3d = mode === '3d' && !broken;
   // a ready label is always what the pack wears; the drawn design is only for a product that has no ready label at all
@@ -261,7 +263,7 @@ export function LabelView({ spec, mode, px = 2600, className, banner, pack = 'ja
         </div>
       }
     >
-      <JarScene className={className} autoTurn={autoTurn} onSnapshot={onSnapshot} wrap={wrapCanvas} mm={mm} kind={kind3d} jarColor={jarColor} accent={banner ? undefined : c.P} panels={PANELS} onUnsupported={() => setBroken(true)} />
+      <JarScene className={className} zoomable={zoomable} autoTurn={autoTurn} onSnapshot={onSnapshot} wrap={wrapCanvas} mm={mm} kind={kind3d} jarColor={jarColor} accent={banner ? undefined : c.P} panels={PANELS} onUnsupported={() => setBroken(true)} />
     </Suspense>
   );
 }

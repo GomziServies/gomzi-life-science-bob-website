@@ -69,7 +69,7 @@ export function ProductModal({ product, flavour, inCart, banner, pack, onPack, o
         <button className="icon-x modal-x" aria-label="Close" onClick={onClose}>×</button>
         <div className="pmodal-art" style={{ ['--tint' as string]: tintOf(product.id) }}>
           {threeD ? (
-            <LabelView className="pmodal-3d" mode="3d" spec={{ product, flavour, design: ownDesign(product.id), details, logo: undefined }} banner={labelOnPack(product, shape, label)} waiting={labels === null || (shape === 'jar' && !!label?.ownLogo)} pack={shape} logo={logo || undefined} logoShift={shift} autoTurn={false} />
+            <LabelView className="pmodal-3d" zoomable mode="3d" spec={{ product, flavour, design: ownDesign(product.id), details, logo: undefined }} banner={labelOnPack(product, shape, label)} waiting={labels === null || (shape === 'jar' && !!label?.ownLogo)} pack={shape} logo={logo || undefined} logoShift={shift} autoTurn={false} />
           ) : (
             <ProductJar className="jar-card" product={product} flavour={flavour} banner={banner} />
           )}
