@@ -4,7 +4,7 @@ import { productById } from '../data/catalog';
 export type BannerOrigin = 'template' | 'ai' | 'blank' | 'graphics_team';
 
 /** The name of the design team a customer can leave their label to. */
-export const TEAM_NAME = 'Parpics team';
+export const TEAM_NAME = 'Graphics team';
 
 export interface CartLine {
   productId: string;

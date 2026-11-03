@@ -11,7 +11,7 @@ import styles from './Floating.module.css'
 const PRESETS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4, 8]
 
 // Slider position 0..100 <-> zoom on a log scale so every zoom range gets equal travel.
-const toSlider = (z: number): number => (Math.log(z / MIN_ZOOM) / Math.log(MAX_ZOOM / MIN_ZOOM)) * 100
+const toSlider = (z: number): number => Math.max(0, (Math.log(Math.max(z, MIN_ZOOM) / MIN_ZOOM) / Math.log(MAX_ZOOM / MIN_ZOOM)) * 100)
 const fromSlider = (v: number): number => MIN_ZOOM * Math.pow(MAX_ZOOM / MIN_ZOOM, v / 100)
 
 /** The floating zoom pill: zoom out, slider, zoom in and the percentage (its menu has fit, presets, rulers and grid). */

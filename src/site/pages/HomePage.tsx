@@ -87,7 +87,7 @@ export function HomePage({ view = 'home' }: { view?: 'home' | 'products' | 'prod
   };
   const labelDetails = { brand: customer.brandName, phone: customer.phone, email: customer.email, address: customer.address, city: customer.city, pincode: customer.pincode };
   const lineOf = (id: string) => cart.find((l) => l.productId === id);
-  // a customer who likes none of the labels leaves it to the design team: the product goes into the inquiry marked "Made by Parpics team"
+  // a customer who likes none of the labels leaves it to the design team: the product goes into the inquiry marked "Made by Graphics team"
   const teamOf = (id: string) => isTeamBanner(banners[id]);
   const toggleTeam = (product: Product, flavour: string) => {
     if (teamOf(product.id)) {

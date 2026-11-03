@@ -1310,7 +1310,7 @@ html { scroll-padding-top: 140px; }
 .site ::selection { background: color-mix(in srgb, var(--brand) 45%, #fff); color: var(--ink); }
 .site .reveal { opacity: 0; transform: translateY(26px); transition: opacity .75s cubic-bezier(.2, .7, .2, 1), transform .75s cubic-bezier(.2, .7, .2, 1); }
 .site .reveal.reveal-in { opacity: 1; transform: none; }
-@media (prefers-reduced-motion: reduce) { .site .reveal { opacity: 1; transform: none; transition: none; } }
+@media (prefers-reduced-motion: reduce) { .site .reveal { opacity: 1; transform: none; transition: none; } }
 
 /* ---- smooth feel: page changes, header, cards, presses, back-to-top ---- */
 .site { -webkit-tap-highlight-color: transparent; }
@@ -2185,3 +2185,52 @@ div.editor-shell > .editor-opening { position: static; flex: 1; }
   .sent-title, .sent-sub, .sent-mail { opacity: 1; }
 }
 .otp-alt { display: grid; gap: 8px; justify-items: start; margin-top: 10px; padding: 14px 16px; border: 1px solid #dbe8b4; border-radius: 14px; background: #f7faec; font-size: .88rem; color: var(--text); }
+
+/* =====================================================================
+   Phones only (600px and narrower). Nothing here changes the desktop or tablet layout.
+   ===================================================================== */
+@media (max-width: 600px) {
+  /* the WhatsApp button stays small and out of the way of text and buttons */
+  .wa-float { width: 46px; height: 46px; right: 10px; bottom: 12px; opacity: .96; }
+  .wa-float svg { width: 24px; height: 24px; }
+
+  /* the buttons under a page's opening text sit full width, one under the other */
+  .plp-hero-cta, .hero .actions, .cl-hero .actions, .brp-head + * .actions { flex-direction: column; align-items: stretch; }
+  .plp-hero-cta .btn, .hero .actions .btn, .cl-hero .actions .btn { width: 100%; justify-content: center; text-align: center; }
+  .plp-hero-copy p { max-width: none; }
+
+  /* "pick your labels": the two buttons share the card's width and never run past its edge */
+  .prow .acts { display: grid !important; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+  .prow .acts .btn, .prodlist .prow .acts .btn { min-width: 0 !important; width: 100%; padding-inline: 10px; justify-content: center; }
+  .review-row > a.btn { width: 100%; justify-content: center; }
+
+  /* "your details": the remove button sits at the top right of its product card */
+  .details-form .qty-row { position: relative; padding-right: 52px; }
+  .details-form .qty-row .icon-x { position: absolute; top: 12px; right: 12px; margin: 0; align-self: auto; grid-row: auto; grid-column: auto; }
+  .details-form .panel { padding: 18px 16px; }
+  .details-form .verify { padding: 14px; }
+  .details-form .form-actions { display: grid; gap: 10px; }
+  .details-form .form-actions .btn { width: 100%; }
+
+  /* the 3D preview window fills the screen and scrolls inside itself */
+  .modal { padding: 0; align-items: flex-end; }
+  .product-3d-modal, .modal-box.pmodal { width: 100%; max-height: 94vh; border-radius: 24px 24px 0 0; overflow-y: auto; }
+
+  /* product cards in the range: a little more room for their text */
+  .pcard-body { padding: 12px 12px 14px; }
+  .pcard-foot .btn { width: 100%; }
+
+  /* the thank-you card and the "sent" card use the whole width */
+  .done-card { padding: 28px 18px 26px; border-radius: 24px; }
+  .sent-card { padding: 34px 18px 28px; border-radius: 26px; }
+}
+
+@media (max-width: 380px) {
+  .wrap { padding-inline: 14px; }
+  .details-form .qty-row { padding-right: 46px; }
+}
+
+@media (max-width: 600px) {
+  .clp-cta { flex-direction: column; align-items: stretch; }
+  .clp-cta .btn { width: 100%; justify-content: center; text-align: center; }
+}

@@ -20,7 +20,8 @@ import { usePresenceTracking } from './usePresenceTracking'
 import styles from './Workspace.module.css'
 
 /** 32 px around the page; the per-page header only exists once there are several pages. */
-const metricsFor = (pages: number): StackMetrics => ({ ...DEFAULT_METRICS, padding: 32, header: pages > 1 ? DEFAULT_METRICS.header : 0 })
+// On a phone the page gets a slim side margin (64 px on each side would push a fitted page off the screen).
+const metricsFor = (pages: number, narrow: boolean): StackMetrics => ({ ...DEFAULT_METRICS, padding: 32, header: pages > 1 ? DEFAULT_METRICS.header : 0, sidePadding: narrow ? 16 : DEFAULT_METRICS.sidePadding })
 const BLEED = 56
 const OVERSCAN = 360
 /** Pages this many viewport heights from the visible area (above and below) get their picture prepared in the background. */
@@ -73,7 +74,8 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
   const panning = spaceDown || tool === 'hand'
   usePresenceTracking(scrollRef, artboards)
 
-  const metrics = useMemo(() => metricsFor(doc.pages.length), [doc.pages.length])
+  const narrow = viewport.width > 0 && viewport.width < 600
+  const metrics = useMemo(() => metricsFor(doc.pages.length, narrow), [doc.pages.length, narrow])
   const layout = useMemo(
     () => computeStack(doc.pages.map((p) => ({ id: p.id, ...pageSize(doc, p) })), zoom, metrics),
     [doc, zoom, metrics],

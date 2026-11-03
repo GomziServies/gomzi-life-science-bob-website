@@ -75,7 +75,7 @@ export function TeamChoice({ picked, onPick, className }: { picked: boolean; onP
     <div className={'teamchoice' + (picked ? ' picked' : '') + (className ? ' ' + className : '')}>
       <span>{picked ? 'Added to your inquiry' : 'No label you like?'}</span>
       <button type="button" aria-pressed={picked} onClick={onPick}>
-        {picked ? '✓ Made with Parpics team' : 'Made with Parpics team'}
+        {picked ? '✓ Made with Graphics team' : 'Made with Graphics team'}
       </button>
       {picked && (
         <button type="button" className="teamchoice-undo" onClick={onPick} aria-label="Take it back">

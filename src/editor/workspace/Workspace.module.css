@@ -62,3 +62,10 @@
   pointer-events: none;
   z-index: 5;
 }
+
+/* On a phone the page keeps a slim side margin, so a fitted page is fully on the screen */
+@media (max-width: 600px) {
+  .content {
+    padding-inline: 16px;
+  }
+}

@@ -1,5 +1,7 @@
 export const MIN_ZOOM = 0.1
 export const MAX_ZOOM = 8
+/** The lowest zoom a fit command may choose (a very wide design on a narrow screen). */
+export const FIT_MIN_ZOOM = 0.02
 export const ZOOM_STEPS: readonly number[] = [0.1, 0.15, 0.25, 0.33, 0.5, 0.67, 0.75, 1, 1.25, 1.5, 2, 3, 4, 6, 8]
 
 export type ZoomMode = 'fit-width' | 'fit-page' | 'custom'
@@ -20,13 +22,17 @@ export interface Size {
  * (small designs are not blown up).
  */
 export function fitZoom(viewport: Size, page: Size, mode: 'fit-width' | 'fit-page', padding = 48): number {
+  // On a phone the page keeps a slim margin: 48 px on each side would leave almost no room on a 390 px screen.
+  if (viewport.width < 600) padding = Math.min(padding, 16)
   const availW = Math.max(1, viewport.width - padding * 2)
   const availH = Math.max(1, viewport.height - padding * 2)
   const byWidth = availW / Math.max(1, page.width)
   const byHeight = availH / Math.max(1, page.height)
   // Fitting the page never enlarges it past 100 % (a small design is not blown up).
   const z = mode === 'fit-width' ? byWidth : Math.min(byWidth, byHeight, 1)
-  return clampZoom(Math.floor(z * 1000) / 1000)
+  // A wide label (4000 px) must still fit a phone's width, which needs a zoom below the 10 % the zoom buttons stop at.
+  const z3 = Math.floor(z * 1000) / 1000
+  return Math.min(MAX_ZOOM, Math.max(FIT_MIN_ZOOM, Number.isFinite(z3) ? z3 : 1))
 }
 
 /**
