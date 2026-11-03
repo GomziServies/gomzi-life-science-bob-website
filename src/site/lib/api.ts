@@ -30,6 +30,18 @@ export async function sendOtp(mobile: string): Promise<string> {
   return body.data!.verification_id;
 }
 
+/** The same one-time password, sent to the customer's e-mail (used when WhatsApp could not reach them). */
+export async function sendEmailOtp(email: string): Promise<string> {
+  if (DEMO_OTP) return DEMO_VERIFICATION_ID;
+  const res = await fetch(`${CRM_API}/inquiry-otp/send`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email.trim().toLowerCase() }),
+  });
+  const body = await json<{ data?: { verification_id: string } }>(res);
+  return body.data!.verification_id;
+}
+
 export async function verifyOtp(verificationId: string, otp: string): Promise<void> {
   if (DEMO_OTP) {
     if (otp !== DEMO_OTP_CODE) throw new Error('Invalid OTP. In dev the code is ' + DEMO_OTP_CODE + '.');

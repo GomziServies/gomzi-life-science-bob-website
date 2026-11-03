@@ -2184,3 +2184,4 @@ div.editor-shell > .editor-opening { position: static; flex: 1; }
   .sent-bit, .sent-ring { display: none; }
   .sent-title, .sent-sub, .sent-mail { opacity: 1; }
 }
+.otp-alt { display: grid; gap: 8px; justify-items: start; margin-top: 10px; padding: 14px 16px; border: 1px solid #dbe8b4; border-radius: 14px; background: #f7faec; font-size: .88rem; color: var(--text); }

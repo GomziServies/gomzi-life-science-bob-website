@@ -4,7 +4,7 @@ import { CATALOG, type Product } from '../data/catalog';
 import { PACK_SIZES } from '../data/content';
 import { cartIssues, minOf, stepOf, stockOf } from '../lib/rules';
 import { isTeamBanner, TEAM_NAME, useOrder, getBannerDisplayUrl, type Customer } from '../state/order';
-import { DEMO_OTP, DEMO_OTP_CODE, sendOtp, verifyOtp } from '../lib/api';
+import { DEMO_OTP, DEMO_OTP_CODE, sendEmailOtp, sendOtp, verifyOtp } from '../lib/api';
 import { ProductJar } from '../components/ProductJar';
 import { Product3DModal } from '../components/Product3DModal';
 import { preloadJarScene } from '../components/LabelView';
@@ -31,6 +31,9 @@ export function DetailsPage() {
   const [otp, setOtp] = useState('');
   const [sent, setSent] = useState(false);
   const [verified, setVerified] = useState(false);
+  // how the code was sent: to the WhatsApp number, or to the e-mail address when WhatsApp could not reach the customer
+  const [via, setVia] = useState<'mobile' | 'email'>('mobile');
+  const [whatsappFailed, setWhatsappFailed] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -108,9 +111,25 @@ export function DetailsPage() {
 
   const onSend = () =>
     run(async () => {
-      const id = await sendOtp(customer.phone.replace(/\s/g, ''));
+      setVia('mobile');
+      try {
+        const id = await sendOtp(customer.phone.replace(/\s/g, ''));
+        setCustomer({ verificationId: id });
+        setSent(true);
+        setWhatsappFailed(false);
+      } catch (e) {
+        setWhatsappFailed(true);
+        throw e;
+      }
+    });
+
+  const onSendEmail = () =>
+    run(async () => {
+      const id = await sendEmailOtp(customer.email);
+      setVia('email');
       setCustomer({ verificationId: id });
       setSent(true);
+      setOtp('');
     });
 
   const onVerify = () =>
@@ -317,7 +336,7 @@ export function DetailsPage() {
                       inputMode={key === 'phone' || key === 'altPhone' || key === 'pincode' ? 'numeric' : undefined}
                       value={customer[key]}
                       maxLength={key === 'brandName' ? 16 : undefined}
-                      disabled={verified && key === 'phone'}
+                      disabled={verified && (key === 'phone' || (key === 'email' && via === 'email'))}
                       aria-invalid={key === 'phone' && customer.phone.length > 0 && !phoneOk}
                       onChange={(e) => setCustomer({ [key]: e.target.value })}
                     />
@@ -360,8 +379,8 @@ export function DetailsPage() {
 
               <div className="verify">
                 <div>
-                  <b>Verify your mobile</b>
-                  <span className="muted">We send a one-time password to confirm your number.</span>
+                  <b>{via === 'email' && sent ? 'Verify your e-mail' : 'Verify your mobile'}</b>
+                  <span className="muted">{via === 'email' && sent ? `We e-mailed a one-time password to ${customer.email}.` : 'We send a one-time password to your WhatsApp to confirm your number.'}</span>
                 </div>
                 {verified ? (
                   <span className="badge done">✓ Verified</span>
@@ -396,6 +415,15 @@ export function DetailsPage() {
                 </p>
               )}
               {error && <p className="error">{error}</p>}
+              {whatsappFailed && !verified && !(sent && via === 'email') && (
+                <div className="otp-alt">
+                  <span>WhatsApp did not work for this number. You can verify with your e-mail instead.</span>
+                  <button type="button" className="btn btn-dark btn-sm" disabled={busy || !emailOk} onClick={onSendEmail}>
+                    Send the code to my e-mail
+                  </button>
+                  {!emailOk && <small className="muted">Enter a valid e-mail above first.</small>}
+                </div>
+              )}
             </div>
 
             <div className="form-actions">
