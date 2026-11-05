@@ -1,4 +1,4 @@
-import { AWS_FILES, AWS_FILES_HOST, CRM_API, EDITOR_API, EDITOR_MEDIA, EDITOR_URL } from './config';
+import { AWS_FILES, AWS_FILES_HOST, CRM_API, EDITOR_API, EDITOR_MEDIA } from './config';
 import type { Customer, Banner, CartLine } from '../state/order';
 import { productById } from '../data/catalog';
 
@@ -156,7 +156,7 @@ export async function listTemplates(params: { category: string; q?: string }): P
   return rows.map((t) => ({
     slug: t.slug,
     title: t.title,
-    thumbnail: t.thumbnail_url ? new URL(t.thumbnail_url, EDITOR_URL).toString() : null,
+    thumbnail: t.thumbnail_url ? (t.thumbnail_url.startsWith('http') ? t.thumbnail_url : `${EDITOR_MEDIA}${t.thumbnail_url.replace(/^\/media/, '')}`) : null,
     width: t.width,
     height: t.height,
   }));

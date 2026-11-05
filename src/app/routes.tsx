@@ -55,8 +55,6 @@ export const routes: RouteObject[] = [
       // the old /shop addresses lead to the same page without it
       { path: 'shop/*', element: <OldShopAddress /> },
       { path: 'shop', element: <Navigate to="/" replace /> },
-      // the shop is the site itself: everything not listed here is one of its pages (or its own not-found page)
-      { path: '*', element: page(<SiteApp />) },
       { path: 'create', element: page(<CreatePage />) },
       { path: 'local/:localId', element: page(<LocalEditorPage />) },
       { path: 'embed/editor', element: page(<EmbedEditorPage />) },
@@ -86,6 +84,8 @@ export const routes: RouteObject[] = [
         ],
       },
       { path: 'dashboard/*', element: <Navigate to="/dashboard" replace /> },
+      // the shop is the site itself: everything not listed here is one of its pages (or its own not-found page)
+      { path: '*', element: page(<SiteApp />) },
     ],
   },
 ]

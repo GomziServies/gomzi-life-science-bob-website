@@ -1,7 +1,8 @@
 const LIVE_BACKEND_ORIGIN = 'https://api.fggroup.in';
 const IS_DEV = import.meta.env.DEV;
 
-export const EDITOR_URL = (import.meta.env.VITE_EDITOR_URL as string | undefined) ?? (IS_DEV ? (typeof window !== 'undefined' ? window.location.origin : LIVE_BACKEND_ORIGIN) : LIVE_BACKEND_ORIGIN);
+/** The frontend editor web origin (hosting /embed/templates, /embed/editor, etc.) */
+export const EDITOR_URL = (import.meta.env.VITE_EDITOR_URL as string | undefined) ?? (typeof window !== 'undefined' ? window.location.origin : '');
 export const CRM_API = (import.meta.env.VITE_CRM_API as string | undefined) ?? (IS_DEV ? '/crm/public/v1' : `${LIVE_BACKEND_ORIGIN}/crm/public/v1`);
 export const EDITOR_API = (import.meta.env.VITE_EDITOR_API as string | undefined) ?? (IS_DEV ? '/api/v1' : `${LIVE_BACKEND_ORIGIN}/api/v1`);
 export const WHATSAPP = (import.meta.env.VITE_WHATSAPP as string | undefined) ?? '918320077993';
