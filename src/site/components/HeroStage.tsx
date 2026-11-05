@@ -71,7 +71,7 @@ export function HeroStage({ details, logo, onLogo, shift, onShift, onEdit, onBan
     <div className="hero-right">
       <div className="stage">
         <div className="blob" aria-hidden />
-        <LabelView spec={spec} mode="3d" className="stage-jar" zoomable waiting={banner === null && banners !== null && banners.length > 0 || banners === null} banner={labelOnPack(product, pack, banner)} pack={pack} logo={logo || undefined} logoShift={shift} autoTurn={false} />
+        <LabelView spec={spec} mode="3d" className="stage-jar" waiting={banner === null && banners !== null && banners.length > 0 || banners === null} banner={labelOnPack(product, pack, banner)} pack={pack} logo={logo || undefined} logoShift={shift} autoTurn={false} />
       </div>
       <div className="packrow"><PackToggle className="stage-packs" product={product} pack={pack} onPack={setPack} /></div>
       <div className="lbox lbox-live">
@@ -88,26 +88,28 @@ export function HeroStage({ details, logo, onLogo, shift, onShift, onEdit, onBan
         </div>
         {banners === null ? (
           <span className="lbox-note">Loading our labels…</span>
-        ) : banners.length > 0 ? (
+        ) : (
           <>
-            <div className="dpicks lstrip" role="group" aria-label="Label">
-              {banners.map((b) => (
-                <button key={b.slug} type="button" className="dpick" aria-pressed={banner?.slug === b.slug} onClick={() => pickBanner(b)} title={b.title}>
-                  <img className={`dpick-img${b.ownLogo ? " bag" : ""}`} src={b.thumb} alt={b.title} loading="lazy" />
-                </button>
-              ))}
-            </div>
+            {banners.length > 0 && (
+              <div className="dpicks lstrip" role="group" aria-label="Label">
+                {banners.map((b) => (
+                  <button key={b.slug} type="button" className="dpick" aria-pressed={banner?.slug === b.slug} onClick={() => pickBanner(b)} title={b.title}>
+                    <img className={`dpick-img${b.ownLogo ? " bag" : ""}`} src={b.thumb} alt={b.title} loading="lazy" />
+                  </button>
+                ))}
+              </div>
+            )}
             {!banner?.ownLogo && <LogoPlacement logo={logo} onLogo={onLogo} shift={shift} onShift={onShift} />}
             <div className="lbox-actions">
               {banner?.ownLogo ? (
                 <span className="lbox-note">This label already has its own brand and details. We print it as it is.</span>
               ) : (
-                <button type="button" className="btn btn-lime btn-sm" disabled={!banner} onClick={() => banner && onEdit(product.id, banner.slug)}>Make with my logo</button>
+                <button type="button" className="btn btn-lime btn-sm" onClick={() => onEdit(product.id, banner?.slug ?? '')}>Make with my logo</button>
               )}
             </div>
             <TeamChoice picked={teamOf(product.id)} onPick={() => onTeam(product.id)} />
           </>
-        ) : null}
+        )}
       </div>
     </div>
   );

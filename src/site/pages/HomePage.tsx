@@ -115,7 +115,7 @@ export function HomePage({ view = 'home' }: { view?: 'home' | 'products' | 'prod
       {view === 'home' ? (
         <>
       <section className="hero">
-        <Sparkle className="hd hd-a" /><Capsule className="hd hd-b" /><Leaf className="hd hd-c" /><Sparkle className="hd hd-d" />
+        <Capsule className="hd hd-b" /><Leaf className="hd hd-c" />
         <div className="wrap hero-grid">
           <div>
             <span className="eyebrow">Gomzi Life Science LLP · Surat</span>
@@ -324,9 +324,6 @@ export function HomePage({ view = 'home' }: { view?: 'home' | 'products' | 'prod
 }
 
 /* soft decorative shapes behind the hero, like scattered confetti */
-const Sparkle = ({ className }: { className: string }) => (
-  <svg className={className} viewBox="0 0 48 48" aria-hidden="true"><path d="M24 2c1.6 11.4 10.6 20.4 22 22-11.4 1.6-20.4 10.6-22 22C22.4 34.6 13.4 25.6 2 24 13.4 22.4 22.4 13.4 24 2Z" fill="currentColor" /></svg>
-);
 const Capsule = ({ className }: { className: string }) => (
   <svg className={className} viewBox="0 0 64 28" aria-hidden="true"><rect x="1" y="1" width="62" height="26" rx="13" fill="none" stroke="currentColor" strokeWidth="2.4" /><path d="M32 1h18a13 13 0 0 1 0 26H32Z" fill="currentColor" opacity=".35" /></svg>
 );

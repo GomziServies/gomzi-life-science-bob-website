@@ -14,7 +14,7 @@ const GUIDES: { title: string; text: string; to: string; hash?: boolean }[] = [
   },
   {
     title: 'Design your own label, free',
-    text: 'Choose a template in our design studio, add your logo and see the result on a 3D tub, pouch or sachet before you place your inquiry.',
+    text: 'Choose a template in our design studio, add your logo and see the result on a 3D jar, pouch or sachet before you place your inquiry.',
     to: '/products',
   },
 ];

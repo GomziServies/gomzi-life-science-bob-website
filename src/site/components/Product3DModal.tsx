@@ -120,7 +120,7 @@ export function Product3DModal({
             </div>
             <div className="spec-item">
               <span className="spec-label">Package Size:</span>
-              <b>{product.unit === 'kg' ? `${packKg ?? 1} kg tub` : product.weight ?? product.unit}</b>
+              <b>{product.unit === 'kg' ? `${packKg ?? 1} kg jar` : product.weight ?? product.unit}</b>
             </div>
             {product.labelSize && (
               <div className="spec-item">

@@ -22,7 +22,9 @@ const SAME_ORIGIN_API = ((): boolean => {
 const CREDENTIALS: RequestCredentials = SAME_ORIGIN_API ? 'include' : 'omit'
 
 /** Where `/media/…` files are served from, without a trailing slash (empty when same-origin). */
-const MEDIA_BASE = ((import.meta.env.VITE_EDITOR_MEDIA as string | undefined) ?? '').replace(/\/+$/, '')
+/** Where `/media/…` files are served from. Live backend serves media with CORS wildcard in production. */
+const LIVE_MEDIA_BASE = 'https://api.fggroup.in/media'
+const MEDIA_BASE = ((import.meta.env.VITE_EDITOR_MEDIA as string | undefined) ?? (import.meta.env.DEV ? '' : LIVE_MEDIA_BASE)).replace(/\/+$/, '')
 
 /**
  * Entries cached by the CDN or the browser before media sent CORS headers keep failing, and a
@@ -37,8 +39,24 @@ const MEDIA_CACHE_VERSION = '2'
  * the page's own origin and loads whatever that returns.
  */
 export function resolveMediaUrl(src: string): string {
-  if (!MEDIA_BASE || !src.startsWith('/media/')) return src
-  const url = MEDIA_BASE + src.slice('/media'.length)
+  if (!src) return src
+  try {
+    if (src.includes('files.fggroup.in')) {
+      const u = new URL(src, 'http://x')
+      if (u.hostname === 'files.fggroup.in') {
+        return import.meta.env.DEV ? '/aws-files' + u.pathname + u.search : src
+      }
+    }
+  } catch {
+    // continue
+  }
+  if (!src.startsWith('/media/')) return src
+  const base = MEDIA_BASE || (import.meta.env.DEV ? '' : LIVE_MEDIA_BASE)
+  if (!base) {
+    return `${src}${src.includes('?') ? '&' : '?'}v=${MEDIA_CACHE_VERSION}`
+  }
+  const cleanBase = base.endsWith('/media') ? base.slice(0, -6) : base
+  const url = `${cleanBase}${src}`
   return `${url}${url.includes('?') ? '&' : '?'}v=${MEDIA_CACHE_VERSION}`
 }
 

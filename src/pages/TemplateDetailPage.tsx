@@ -1,3 +1,4 @@
+import { resolveMediaUrl } from '@/lib/api/client'
 import { ArrowLeft, Sparkles } from 'lucide-react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthProvider'
@@ -82,7 +83,14 @@ export default function TemplateDetailPage() {
       </Link>
       <div className={styles.layout}>
         <div className={styles.preview}>
-          <Thumbnail src={template.thumbnail_url} alt={`${template.title} template preview`} aspect={Math.min(Math.max(aspect, 0.45), 2.2)} fit="contain" className={styles.previewImage} />
+          <Thumbnail
+            src={template.thumbnail_url ? resolveMediaUrl(template.thumbnail_url) : (template.preview_url ? resolveMediaUrl(template.preview_url) : undefined)}
+            fallbackSrc={template.preview_url ? resolveMediaUrl(template.preview_url) : (template.slug ? resolveMediaUrl(`/media/templates/previews/${encodeURIComponent(template.slug)}.webp`) : undefined)}
+            alt={`${template.title} template preview`}
+            aspect={Math.min(Math.max(aspect, 0.45), 2.2)}
+            fit="contain"
+            className={styles.previewImage}
+          />
         </div>
         <div className={styles.side}>
           {template.category ? <Badge tone="brand">{template.category.name}</Badge> : null}

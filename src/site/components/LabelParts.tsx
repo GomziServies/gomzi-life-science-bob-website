@@ -14,11 +14,11 @@ export const packsOf = (product: Product): Pack[] => (product.group === 'well' |
 export const fitPack = (product: Product, pack: Pack): Pack => (packsOf(product).includes(pack) ? pack : packsOf(product)[0]);
 
 /** The packs written out, such as "Tub · Pouch · Sachet". */
-export const packText = (product: Product): string => packsOf(product).map((p) => (p === 'jar' ? (product.unit === 'kg' ? 'Tub' : 'Jar') : p === 'pouch' ? 'Pouch' : 'Sachet')).join(' · ');
+export const packText = (product: Product): string => packsOf(product).map((p) => (p === 'jar' ? 'Jar' : p === 'pouch' ? 'Pouch' : 'Sachet')).join(' · ');
 
 /** Switch the 3D view between the jar (or tub), a stand-up pouch and a sachet. */
 export function PackToggle({ product, pack, onPack, className }: { product: Product; pack: Pack; onPack: (p: Pack) => void; className?: string }) {
-  const options: [Pack, string][] = [['jar', product.unit === 'kg' ? 'Tub' : 'Jar'], ['pouch', 'Pouch'], ['sachet', 'Sachet']];
+  const options: [Pack, string][] = [['jar', 'Jar'], ['pouch', 'Pouch'], ['sachet', 'Sachet']];
   const allowed = packsOf(product);
   if (allowed.length < 2) return null;
   return (

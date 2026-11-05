@@ -7,7 +7,7 @@ import { ProductJar, ownDesign } from './ProductJar';
 import type { Details } from '../lib/labelArt';
 import { notePicture, useLoading3d, useTick } from '../lib/preload3d';
 
-const NAMES: Record<Pack, (p: Product) => string> = { jar: (p) => (p.unit === 'kg' ? 'Tub' : 'Jar'), pouch: () => 'Pouch', sachet: () => 'Sachet' };
+const NAMES: Record<Pack, (p: Product) => string> = { jar: () => 'Jar', pouch: () => 'Pouch', sachet: () => 'Sachet' };
 
 /** Pictures of each pack, already taken, so a card that scrolls back into view shows them at once. */
 const shots = new Map<string, string>();

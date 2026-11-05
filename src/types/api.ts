@@ -205,6 +205,7 @@ export interface TemplateSummary {
   preset: string
   page_count: number
   thumbnail_url: string | null
+  preview_url?: string | null
   is_featured: boolean
   use_count: number
   created_at: string

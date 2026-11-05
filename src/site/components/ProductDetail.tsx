@@ -264,7 +264,7 @@ export function ProductDetail({ product, flavour, inCart, pack, onPack, onFlavou
             <article className="pd-card" id="pd-label">
               <h2>Label &amp; pack details</h2>
               <dl className="pd-facts">
-                <div><dt>Packs</dt><dd>{packsOf(product).map((p) => (p === 'jar' ? (product.unit === 'kg' ? 'Tub' : product.unit === 'bottle' ? 'Bottle' : 'Jar') : p === 'pouch' ? 'Pouch' : 'Sachet')).join(' · ')}</dd></div>
+                <div><dt>Packs</dt><dd>{packsOf(product).map((p) => (p === 'jar' ? (product.unit === 'bottle' ? 'Bottle' : 'Jar') : p === 'pouch' ? 'Pouch' : 'Sachet')).join(' · ')}</dd></div>
                 <div><dt>Label size</dt><dd>{product.labelSize ?? `${mm.w} × ${mm.h} mm`}</dd></div>
                 <div><dt>Logo area</dt><dd>{guide.mmW} × {guide.mmH} mm, at least {guide.pxW} × {guide.pxH} px for a sharp print</dd></div>
                 <div><dt>Flavours</dt><dd>{product.flavours.length}</dd></div>

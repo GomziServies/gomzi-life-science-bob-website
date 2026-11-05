@@ -30,7 +30,7 @@ const PANELS: { w: string; n: number; title: string; text: string }[] = [
 ];
 
 const SIZE_ROWS: { label: string; id: string }[] = [
-  { label: 'Protein tub', id: 'wp57' },
+  { label: 'Protein jar', id: 'wp57' },
   { label: 'Sports jar', id: 'cre' },
   { label: 'Peanut butter jar', id: 'peanut' },
   { label: 'Wellness bottle', id: 'd3k2' },
@@ -38,11 +38,11 @@ const SIZE_ROWS: { label: string; id: string }[] = [
 ];
 
 const QA: [string, string][] = [
-  ['What size are the labels?', 'Each pack has its own label size: 450 × 140 mm for protein tubs, 310 × 85 mm for jars, 177.8 × 70 mm for wellness bottles and 140 × 110 mm for sachets. The design studio opens at the right size for your product.'],
+  ['What size are the labels?', 'Each pack has its own label size: 450 × 140 mm for protein jars, 310 × 85 mm for jars, 177.8 × 70 mm for wellness bottles and 140 × 110 mm for sachets. The design studio opens at the right size for your product.'],
   ['Is designing the label free?', 'Yes. Designing your own label and logo in our design studio is free. Our team confirms everything else with you when they call.'],
   ['Can I use my own logo?', 'Yes. Upload it, place it on the label and move it until it looks right. The studio shows the exact logo area and the picture size you need for a sharp print.'],
   ['Who prepares the print file?', 'Our design team opens your saved label, makes any print-ready adjustments and prepares the CMYK file.'],
-  ['Can I see the label on the pack before I order?', 'Yes. Every product has a 3D preview of the tub, pouch or sachet that you can turn to see the front, the back and the sides.'],
+  ['Can I see the label on the pack before I order?', 'Yes. Every product has a 3D preview of the jar, pouch or sachet that you can turn to see the front, the back and the sides.'],
   ['What goes on the label besides my design?', 'Your brand details on the “marketed by” panel, our manufacturer details and FSSAI licence number on the “manufactured by” panel, and boxes for batch number, manufacturing and expiry dates and price.'],
 ];
 

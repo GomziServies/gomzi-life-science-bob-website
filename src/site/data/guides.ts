@@ -36,7 +36,7 @@ export const HOW_STEPS: StepDetail[] = [
     doList: [
       'Open a ready template for the product, or let AI Studio make designs for you.',
       'Upload your logo and place it where you want it. Our guide shows the exact label area and the picture size a sharp print needs.',
-      'Turn the 3D tub, pouch or sachet to see the front, the back and the sides before you decide.',
+      'Turn the 3D jar, pouch or sachet to see the front, the back and the sides before you decide.',
       'No time to design? Leave the label to our design team and the product joins your inquiry marked "Made by our team".',
     ],
     note: 'Our design team opens every saved banner, makes print-ready adjustments and prepares the CMYK file.',
@@ -129,7 +129,7 @@ export const FAQ_GROUPS: FaqGroup[] = [
     items: [
       ['I can’t design. What are my options?', 'Use our ready templates for every product, or let AI Studio make designs for you. Pick the one you like and send your inquiry.'],
       ['Can I add my own logo?', 'Yes. Upload it and place it on the label. The editor shows the exact logo area and the picture size you need for a sharp print.'],
-      ['Can I see my label on the jar before I order?', 'Yes. Every product has a 3D preview of the tub, pouch or sachet that you can turn to see all sides.'],
+      ['Can I see my label on the jar before I order?', 'Yes. Every product has a 3D preview of the jar, pouch or sachet that you can turn to see all sides.'],
       ['What if I would rather not design at all?', 'Choose "leave it to the design team". The product joins your inquiry marked as made by our team, and our designers prepare the label.'],
       ['Who finalises my banner?', 'Our design team opens your saved banner, makes print-ready adjustments and prepares the CMYK file.'],
     ],

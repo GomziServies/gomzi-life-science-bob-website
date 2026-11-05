@@ -70,7 +70,6 @@ export function ContactPage() {
       />
 
       <section className="section contact-hero">
-        <svg className="hd hd-a" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 2c1.6 11.4 10.6 20.4 22 22-11.4 1.6-20.4 10.6-22 22C22.4 34.6 13.4 25.6 2 24 13.4 22.4 22.4 13.4 24 2Z" fill="currentColor" /></svg>
         <div className="wrap">
           <nav className="crumbs" aria-label="Breadcrumb"><Link to="/">Home</Link><span aria-hidden="true">›</span><span>Contact</span></nav>
           <h1 className="page-title">Need help? Contact us</h1>

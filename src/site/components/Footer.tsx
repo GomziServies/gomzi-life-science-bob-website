@@ -1,31 +1,42 @@
 import { Link } from 'react-router-dom';
 import { MAIN_SITE } from '../data/content';
+import { WHATSAPP } from '../lib/config';
 
 // Footer laid out like the company website (gomzilifesciences.in), so this order site can sit inside it later.
-// Links point to the main site's own pages.
+// Links point to local client-side routes when available, or to the main site's own pages.
 const site = (path: string) => `${MAIN_SITE}${path}`;
+const wa = (text: string) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`;
 
 const SERVICES: [string, string][] = [
-  ['Private Label Supplements', site('/nutrition/white-labelling')],
-  ['Whey Protein', site('/third-party-manufacturing/protein-powder')],
+  ['Private Labeling', '/how-private-label-works'],
+  ['Drop Shipping', '/dropshipping'],
+  ['Store Setup Option', wa('Hi Gomzi, I want to learn more about the D2C Store setup option for my brand.')],
+  ['Custom Formulation', '/custom-branding'],
+];
+
+const NUTRACEUTICALS: [string, string][] = [
+  ['Whey Protein', '/products/wp57'],
   ['Sports Nutrition', site('/third-party-manufacturing/sports-nutrition-supplements')],
-  ['Multivitamin', site('/third-party-manufacturing/multivitamins-tablet')],
-  ['Peanut Butter', site('/third-party-manufacturing/peanut-butter')],
+  ['Creatine Monohydrate', '/products/cre'],
+  ['Pre-Workout Formula', '/products/pre'],
+  ['Plant & Vegan Protein', '/products/plant'],
+];
+
+const PHARMACEUTICALS: [string, string][] = [
+  ['Multivitamin Tablets', '/products/multi'],
+  ['Vitamin D3 + K2', '/products/d3k2'],
+  ['Biotin & Hair Nutrition', '/products/biotin'],
+  ['Calcium & Minerals', '/products/calc'],
+  ['Dietary Supplementation', site('/third-party-manufacturing/multivitamins-tablet')],
 ];
 
 const LINKS: [string, string][] = [
-  ['Contact Us', '/contact'],
   ['About Us', '/about'],
+  ['Contact Us', '/contact'],
+  ['Product Brochure', '/brochure'],
   ['FAQ', '/faq'],
-];
-
-const INFORMATION: [string, string][] = [
   ['Terms & Conditions', site('/nutrition/terms-condition-customer')],
-  ['Return & Refund', site('/nutrition/return-and-refund-policy-customer')],
   ['Privacy Policy', site('/nutrition/privacy-policy-customer')],
-  ['Cancellation Policy', site('/nutrition/cancellation-policy-customer')],
-  ['Pricing Policy', site('/nutrition/pricing-policy-customer')],
-  ['Shipping Policy', site('/nutrition/shipping-policy-customer')],
 ];
 
 const CERTS: [string, string][] = [
@@ -47,13 +58,19 @@ const SOCIAL: { label: string; href: string; path: string }[] = [
 ];
 
 export function Footer() {
+  const renderLink = ([label, href]: [string, string]) => (
+    <li key={label}>
+      {href.startsWith('/') ? <Link to={href}>{label}</Link> : <a href={href} target={href.startsWith('http') ? '_blank' : undefined} rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}>{label}</a>}
+    </li>
+  );
+
   return (
     <footer className="gf">
       <div className="gf-wrap">
         <div className="gf-col gf-brand">
           <h4>Gomzi Lifesciences LLP</h4>
-          <p className="gf-tag">Your Trusted Partner For Premium Nutraceutical Manufacturing.</p>
-          <a className="gf-strong" href="mailto:info@gomzilifesciences.in">Info@Gomzilifesciences.In</a>
+          <p className="gf-tag">Your Trusted Partner For Premium Nutraceutical &amp; Pharmaceutical Manufacturing.</p>
+          <a className="gf-strong" href="mailto:info@gomzilifesciences.in">info@gomzilifesciences.in</a>
           <a className="gf-strong gf-addr" href="https://www.google.com/maps?q=443,444,445,RJD+Textile+Park,Ichchhapor,Hazira+Road,Surat,Gujarat,394510" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#e11d1d" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.500a2.5 2.5 0 0 1 0 5z" /></svg>
             <span>443,444,445, 1st Floor, RJD Textile Park, At. Ichchhapor, Hazira Road, Surat, Gujarat 394510</span>
@@ -62,17 +79,22 @@ export function Footer() {
 
         <div className="gf-col">
           <h4>Services</h4>
-          <ul>{SERVICES.map(([label, href]) => <li key={label}><a href={href}>{label}</a></li>)}</ul>
+          <ul>{SERVICES.map(renderLink)}</ul>
         </div>
 
         <div className="gf-col">
-          <h4>Links</h4>
-          <ul>{LINKS.map(([label, href]) => <li key={label}>{href.startsWith('/') ? <Link to={href}>{label}</Link> : <a href={href}>{label}</a>}</li>)}</ul>
+          <h4>Nutraceuticals</h4>
+          <ul>{NUTRACEUTICALS.map(renderLink)}</ul>
         </div>
 
         <div className="gf-col">
-          <h4>Information</h4>
-          <ul>{INFORMATION.map(([label, href]) => <li key={label}><a href={href}>{label}</a></li>)}</ul>
+          <h4>Pharmaceuticals</h4>
+          <ul>{PHARMACEUTICALS.map(renderLink)}</ul>
+        </div>
+
+        <div className="gf-col">
+          <h4>Quick Links</h4>
+          <ul>{LINKS.map(renderLink)}</ul>
         </div>
 
         <div className="gf-col gf-follow">
@@ -87,7 +109,7 @@ export function Footer() {
           <h4>Partner With Us</h4>
           <ul>
             <li><a href={`${MAIN_SITE}/`}>Become A Distributor</a></li>
-            <li><a href={`${MAIN_SITE}/`}>Become An Affiliate</a></li>
+            <li><a href={wa('Hi Gomzi, I want to become an affiliate partner.')} target="_blank" rel="noopener noreferrer">Become An Affiliate</a></li>
           </ul>
           <div className="gf-certs" aria-label="Certifications">
             {CERTS.map(([name, src]) => <img key={name} src={src} alt={name} title={name} loading="lazy" />)}

@@ -39,9 +39,9 @@ export function BrandingPage() {
       title: 'Custom Label',
       intro: ['Every pack carries your own label: your logo, your brand name, your address and customer care number, and your design on the front.', 'Start from a ready template, let AI Studio make designs, or bring your own artwork. Designing in our studio is free.'],
       specs: [
-        ['Label sizes', '450 × 140 mm protein tub · 310 × 85 mm jar · 177.8 × 70 mm bottle · 140 × 110 mm sachet'],
+        ['Label sizes', '450 × 140 mm protein jar · 310 × 85 mm jar · 177.8 × 70 mm bottle · 140 × 110 mm sachet'],
         ['Panels', 'Marketed by (you) · front design · manufactured by (us, with FSSAI number)'],
-        ['Your logo', `Shown in the studio at the exact size; for a protein tub, ${g.mmW} × ${g.mmH} mm`],
+        ['Your logo', `Shown in the studio at the exact size; for a protein jar, ${g.mmW} × ${g.mmH} mm`],
         ['Print file', 'Our design team prepares the print-ready CMYK file'],
       ],
       cta: <Link className="btn btn-lime" to="/custom-labels">See custom labels</Link>,
@@ -54,7 +54,7 @@ export function BrandingPage() {
     {
       id: 'pack',
       title: 'Your Own Pack',
-      intro: ['Choose how your product reaches your customer: a protein tub, a stand-up pouch or a sachet, in the size that suits your range.', 'See your label on the pack in 3D, turn it round, and check every side before you send your inquiry.'],
+      intro: ['Choose how your product reaches your customer: a protein jar, a stand-up pouch or a sachet, in the size that suits your range.', 'See your label on the pack in 3D, turn it round, and check every side before you send your inquiry.'],
       specs: [
         ['Protein powders', '500 g, 1 kg or 2 kg jars, also as stand-up pouches and sachets'],
         ['Sports supplements', '250 g jars: creatine, BCAA, EAA, pre-workout and fat burner'],
@@ -62,7 +62,7 @@ export function BrandingPage() {
         ['Wellness range', 'Bottles of 60, with gummies and drops'],
       ],
       cta: <Link className="btn btn-lime" to="/products">Explore products</Link>,
-      visual: combo('whey', 'Whey protein tubs in three flavours, with a stand-up pouch and sachet available'),
+      visual: combo('whey', 'Whey protein jars in three flavours, with a stand-up pouch and sachet available'),
     },
     {
       id: 'formula',
@@ -99,7 +99,7 @@ export function BrandingPage() {
               </figure>
             ))}
           </div>
-          <span className="brp-badge">Label size {labelMm(tub).w} × {labelMm(tub).h} mm on a tub</span>
+          <span className="brp-badge">Label size {labelMm(tub).w} × {labelMm(tub).h} mm on a jar</span>
         </div>
       ),
     },
