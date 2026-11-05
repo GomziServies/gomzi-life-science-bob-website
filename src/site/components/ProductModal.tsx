@@ -141,9 +141,9 @@ export function ProductModal({ product, flavour, inCart, banner, pack, onPack, o
             {product.comingSoon ? (
               <button type="button" className="btn btn-ghost" disabled>Coming soon</button>
             ) : inCart ? (
-              <button type="button" className="btn btn-ghost" onClick={onRemove}>Remove from inquiry</button>
+              <button type="button" className="btn btn-ghost" onClick={onRemove}>Remove from cart</button>
             ) : (
-              <button type="button" className="btn btn-lime" onClick={onAdd}>Add to inquiry</button>
+              <button type="button" className="btn btn-lime" onClick={onAdd}>Add to Cart (Inquiry)</button>
             )}
             {label && !label.ownLogo && <button type="button" className="btn btn-dark" onClick={() => onEdit(label.slug)}>Edit this label</button>}
           </div>

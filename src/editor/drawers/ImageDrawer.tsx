@@ -5,6 +5,7 @@ import type { Asset, StockPhoto } from '@/types/api'
 import { I } from '../chrome/icons'
 import { useEditor, useEditorState, useEditorStateShallow } from '../context'
 import { imageFilesFrom } from '../engine/files'
+import { resolveMediaUrl } from '@/lib/api'
 import { useAsyncList } from '../hooks/useAsyncList'
 import { useDebounced } from '../hooks/useDebounced'
 import { useResolvedSrc } from '../hooks/useResolvedSrc'
@@ -193,7 +194,7 @@ function StockTab({ close }: PanelProps) {
       <div className={styles.photos}>
         {photos.items.map((p) => (
           <button key={p.id} type="button" className={styles.photo} data-testid="stock-photo" aria-label={t.imageDrawer.addPhoto(p.author)} disabled={importing !== null} onClick={() => void add(p)}>
-            <img src={p.thumb_url} alt="" loading="lazy" draggable={false} />
+            <img src={resolveMediaUrl(p.thumb_url)} alt="" loading="lazy" draggable={false} referrerPolicy="no-referrer" />
             <span className={styles.credit}>{t.imageDrawer.photoBy(p.author)}</span>
           </button>
         ))}

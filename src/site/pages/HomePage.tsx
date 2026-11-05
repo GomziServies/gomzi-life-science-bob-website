@@ -121,12 +121,16 @@ export function HomePage({ view = 'home' }: { view?: 'home' | 'products' | 'prod
             <span className="eyebrow">Gomzi Life Science LLP · Surat</span>
             <h1>Launch your own supplement brand in just <span className="mark">5 days.</span></h1>
             <div className="hl-box">
-              <span className="hl-ic" aria-hidden>✎</span>
+              <span className="hl-ic" aria-hidden>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+              </span>
               <div>
                 <b>Design your own logo and label yourself.</b>
                 <span>Free, in our design studio, in a few minutes.</span>
               </div>
-              <button type="button" onClick={() => openEditor('wp57')}>Try it</button>
+              <button type="button" onClick={() => openEditor('wp57')}>
+                Try it <span aria-hidden="true" className="hl-arr">→</span>
+              </button>
             </div>
             <p className="hero-sub">Choose from ready formulations and we manufacture, fill and label your jars at our facility in Surat.</p>
             <div className="actions">
@@ -250,11 +254,11 @@ export function HomePage({ view = 'home' }: { view?: 'home' | 'products' | 'prod
                             <button className="btn btn-ghost btn-sm" onClick={() => removeFromCart(p.id)}>Remove</button>
                           ) : (
                             <button className="btn btn-lime btn-sm" onClick={() => addToCart({ productId: p.id, flavour, quantity: defaultQty(p, cart), packKg: 1 })}>
-                              Add to inquiry
+                              Add to Cart (Inquiry)
                             </button>
                           )}
                         </div>
-                        {line && <span className="incart">✓ Added to your inquiry</span>}
+                        {line && <span className="incart">✓ Added to cart</span>}
                       </div>
                     </article>
                   );

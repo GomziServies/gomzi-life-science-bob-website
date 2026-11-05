@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { ElementItem, ElementKind, ElementPack } from '@/types/api'
 import { useEditor } from '../context'
+import { resolveMediaUrl } from '@/lib/api'
 import { useAsyncList } from '../hooks/useAsyncList'
 import { useDebounced } from '../hooks/useDebounced'
 import { t } from '../strings'
@@ -85,7 +86,7 @@ export function StickerPanel() {
           <div className={styles.grid} data-testid="sticker-grid">
             {list.items.map((item) => (
               <button key={item.id} type="button" className={styles.cell} title={item.name} aria-label={t.elementsPanel.addOf(item.name)} data-testid="sticker-cell" onClick={() => void editor.insert.element(item)}>
-                <img src={item.svg_url} alt="" loading="lazy" draggable={false} />
+                <img src={resolveMediaUrl(item.svg_url)} alt="" loading="lazy" draggable={false} referrerPolicy="no-referrer" />
               </button>
             ))}
           </div>

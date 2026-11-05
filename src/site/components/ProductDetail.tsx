@@ -186,14 +186,14 @@ export function ProductDetail({ product, flavour, inCart, pack, onPack, onFlavou
                 {product.comingSoon ? (
                   <button type="button" className="btn btn-ghost" disabled>Coming soon</button>
                 ) : inCart ? (
-                  <button type="button" className="btn btn-ghost" onClick={onRemove}>Remove from inquiry</button>
+                  <button type="button" className="btn btn-ghost" onClick={onRemove}>Remove from cart</button>
                 ) : (
-                  <button type="button" className="btn btn-lime" onClick={onAdd}>Add to inquiry</button>
+                  <button type="button" className="btn btn-lime" onClick={onAdd}>Add to Cart (Inquiry)</button>
                 )}
                 {label && !product.comingSoon && !label.ownLogo && <button type="button" className="btn btn-dark" onClick={() => onEdit(label.slug)}>Edit this label</button>}
                 {inCart && <Link className="btn btn-ghost" to="/details">Continue</Link>}
               </div>
-              {inCart && <span className="incart">✓ Added to your inquiry</span>}
+              {inCart && <span className="incart">✓ Added to cart</span>}
 
               {labels && labels.length > 0 && !label?.ownLogo && <LogoPlacement logo={logo} onLogo={onLogo} shift={shift} onShift={onShift} />}
               {labels && labels.length > 0 && <TeamChoice picked={team} onPick={onTeam} />}

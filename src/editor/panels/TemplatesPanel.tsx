@@ -1,7 +1,7 @@
 import { ChevronDown, FilePlus2, Files, FileUp, Loader2, Maximize2, Replace } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import type { TemplateSummary } from '@/types/api'
-import { templatesApi } from '@/lib/api'
+import { resolveMediaUrl, templatesApi } from '@/lib/api'
 import { useEditor, useEditorState } from '../context'
 import { getLayeredDesign } from '@/features/studio/api'
 import { migrateDocument } from '../engine/migrations'
@@ -30,6 +30,39 @@ const filterKey = (f: Filter): string => (f.type === 'all' ? 'all' : f.type === 
 
 /** Width / height of a card, kept within what a two-column grid can show. */
 const cardRatio = (tpl: Pick<TemplateSummary, 'width' | 'height'>): number => Math.min(2, Math.max(0.5, tpl.width / Math.max(1, tpl.height)))
+
+function TemplateThumb({ tpl }: { tpl: TemplateSummary }) {
+  const [src, setSrc] = useState(() => (tpl.thumbnail_url ? resolveMediaUrl(tpl.thumbnail_url) : ''))
+  const [failed, setFailed] = useState(false)
+
+  if (!tpl.thumbnail_url || failed) {
+    return <span className={styles.blank}>{tpl.title}</span>
+  }
+
+  const handleError = () => {
+    if (tpl.preview_url && src !== resolveMediaUrl(tpl.preview_url)) {
+      setSrc(resolveMediaUrl(tpl.preview_url))
+      return
+    }
+    if (tpl.thumbnail_url?.startsWith('/media/') && !src.startsWith('https://api.fggroup.in')) {
+      setSrc(`https://api.fggroup.in${tpl.thumbnail_url}`)
+      return
+    }
+    setFailed(true)
+  }
+
+  return (
+    <img
+      className={styles.thumb}
+      src={src}
+      alt={tpl.title}
+      loading="lazy"
+      draggable={false}
+      referrerPolicy="no-referrer"
+      onError={handleError}
+    />
+  )
+}
 
 /** Templates sidebar: search, categories, a grid of previews; a click puts the template on the page, replaces it or adds pages. */
 export function TemplatesPanel({ close }: { close: () => void }) {
@@ -266,7 +299,7 @@ export function TemplatesPanel({ close }: { close: () => void }) {
                   return (
                     <div key={tpl.id} className={styles.item}>
                       <button type="button" className={styles.card} style={{ aspectRatio: cardRatio(tpl) }} aria-label={t.templates.use(tpl.title)} aria-busy={busy === tpl.id || undefined} aria-haspopup="menu" disabled={busy !== null} data-testid="template-card" onClick={(e) => pick(tpl, e.currentTarget)}>
-                        {tpl.thumbnail_url ? <img className={styles.thumb} src={tpl.thumbnail_url} alt="" loading="lazy" draggable={false} /> : <span className={styles.blank}>{tpl.title}</span>}
+                        <TemplateThumb tpl={tpl} />
                         {tpl.page_count > 1 ? <span className={styles.pages}>{t.templates.pageCount(tpl.page_count)}</span> : null}
                       </button>
                       <span className={styles.title}>{tpl.title}</span>

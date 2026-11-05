@@ -1,6 +1,7 @@
 import { RotateCcw, Save } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import type { VersionSummary } from '@/types/api'
+import { resolveMediaUrl } from '@/lib/api'
 import { useEditor } from '../context'
 import { useResource } from '../hooks/useResource'
 import { migrateDocument } from '../engine/migrations'
@@ -81,7 +82,7 @@ export function VersionsDialog() {
           <ul className={styles.versions} aria-label={t.versions.list}>
             {list.map((v) => (
               <li key={v.id} className={styles.version} data-testid="version-row">
-                <span className={styles.versionThumb} style={v.thumbnail_url ? { backgroundImage: `url("${v.thumbnail_url}")` } : undefined} aria-hidden="true" />
+                <span className={styles.versionThumb} style={v.thumbnail_url ? { backgroundImage: `url("${resolveMediaUrl(v.thumbnail_url)}")` } : undefined} aria-hidden="true" />
                 <span className={styles.versionText}>
                   <strong>{v.label}</strong>
                   <small>

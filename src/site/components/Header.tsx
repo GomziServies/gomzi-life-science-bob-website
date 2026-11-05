@@ -109,7 +109,7 @@ export function Header() {
           </nav>
           <Link to={cart.length ? (customer.verificationId ? '/customize' : '/details') : '/products'} className="cartbtn">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2.1 2.75a.9.9 0 0 1 1-.46l.3.1c.6.22 1.1.4 1.5.6.45.22.8.5 1.1.9.3.42.4.87.45 1.37l.04.5h10.64c1.7 0 3.2 0 3.65.58.44.58.27 1.45-.08 3.19l-.5 2.42c-.31 1.53-.47 2.3-1.02 2.74-.55.45-1.33.45-2.89.45h-5.3c-2.8 0-4.18 0-5.05-.92C5.06 13.6 5 12.6 5 9.65V7c0-.74 0-1.24-.04-1.62-.04-.36-.11-.55-.2-.68-.09-.13-.22-.25-.52-.4-.33-.16-.77-.31-1.44-.55l-.26-.09a.9.9 0 0 1-.44-1.15Z"/><circle cx="7.5" cy="19.5" r="1.5"/><circle cx="16.5" cy="19.5" r="1.5"/></svg>
-            <span className="cartbtn-t">Your inquiry</span> <span className="cnt" key={cart.length}>{cart.length}</span>
+            <span className="cartbtn-t">Your Cart</span> <span className="cnt" key={cart.length}>{cart.length}</span>
           </Link>
         </div>
       </div>
