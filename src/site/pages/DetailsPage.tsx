@@ -5,10 +5,11 @@ import { PACK_SIZES } from '../data/content';
 import { cartIssues, minOf, stepOf, stockOf } from '../lib/rules';
 import { isTeamBanner, TEAM_NAME, useOrder, getBannerDisplayUrl, type Customer } from '../state/order';
 import { DEMO_OTP, DEMO_OTP_CODE, sendEmailOtp, sendOtp, verifyOtp } from '../lib/api';
-import { ProductJar } from '../components/ProductJar';
+import { PackIcon } from '../components/PackIcon';
 import { Product3DModal } from '../components/Product3DModal';
 import { preloadJarScene } from '../components/LabelView';
 import { Stepper } from '../components/Stepper';
+import { editsSaved, labelEditPath } from '../lib/labelLinks';
 
 type TextField = Exclude<keyof Customer, 'verificationId'>;
 
@@ -170,7 +171,7 @@ export function DetailsPage() {
                         title="Click to see this product in 3D with your label"
                         onClick={() => setPreviewProduct(p)}
                       >
-                        <ProductJar
+                        <PackIcon
                           className="jar-sm"
                           product={p}
                           flavour={l.flavour}
@@ -230,13 +231,7 @@ export function DetailsPage() {
                             <button
                               type="button"
                               className="linkbtn mini-edit-link"
-                              onClick={() =>
-                                nav(
-                                  `/customize/${p.id}?returnTo=${encodeURIComponent(
-                                    `/details?preview=${p.id}`
-                                  )}`
-                                )
-                              }
+                              onClick={() => nav(labelEditPath(p.id, banner.pack, undefined, editsSaved(banner, banner.pack)))}
                             >
                               Edit label
                             </button>
@@ -440,6 +435,8 @@ export function DetailsPage() {
           </form>
 
           <aside className="details-side">
+            {/* the summary card and the "View more products" button stay together while the page scrolls */}
+            <div className="dt-side-stack">
             <div className="panel sticky">
               <h3>Your inquiry</h3>
               <ul className="mini-list">
@@ -460,6 +457,10 @@ export function DetailsPage() {
               </ol>
               <p className="dt-help">Need a hand? <Link to="/contact">Talk to our team</Link></p>
             </div>
+            <Link to="/products" className="btn btn-lime btn-block">
+              View more products
+            </Link>
+            </div>
           </aside>
         </div>
       </div>
@@ -473,13 +474,9 @@ export function DetailsPage() {
           banner={banners[previewProduct.id]}
           brandName={customer.brandName}
           onClose={closePreview}
-          onEdit={() => {
-            nav(
-              `/customize/${previewProduct.id}?returnTo=${encodeURIComponent(
-                `/details?preview=${previewProduct.id}`
-              )}`
-            );
-          }}
+          // already on the cart page: closing the preview leaves the visitor at /details
+          onViewCart={closePreview}
+          onEdit={(pack) => nav(labelEditPath(previewProduct.id, pack, undefined, editsSaved(banners[previewProduct.id], pack)))}
         />
       )}
     </section>

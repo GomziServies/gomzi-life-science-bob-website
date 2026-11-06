@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Product } from '../data/catalog';
-import { getBannerDisplayUrl, type Banner } from '../state/order';
+import { getBannerDisplayUrl, useOrder, type Banner } from '../state/order';
 import { ownDesign, tintOf } from './ProductJar';
 import { LabelView, type BannerLike } from './LabelView';
-import { PackToggle, defaultBagLabel, useFirstJarLabel, type Pack } from './LabelParts';
+import { PackToggle, defaultBagLabel, packsOf, useFirstJarLabel, type Pack } from './LabelParts';
+import { HelpModal } from './HelpModal';
+import { jarKind } from '../lib/labelArt';
+import { cupArtCached, cupArtFrom, type CupArt } from '../lib/cupLabel';
 
 export interface Product3DModalProps {
   product: Product;
@@ -12,7 +16,10 @@ export interface Product3DModalProps {
   banner?: Banner | null;
   brandName?: string;
   onClose: () => void;
-  onEdit: () => void;
+  /** Opens the label studio for the pack being shown (jar, pouch or sachet). */
+  onEdit: (pack: Pack) => void;
+  /** "View cart": by default opens the cart page (/details); a page already showing the cart passes its own (closing the preview). */
+  onViewCart?: () => void;
 }
 
 /**
@@ -28,8 +35,15 @@ export function Product3DModal({
   brandName = '',
   onClose,
   onEdit,
+  onViewCart,
 }: Product3DModalProps) {
-  const [pack, setPack] = useState<Pack>('jar');
+  const nav = useNavigate();
+  const { customer } = useOrder();
+  const [helpOpen, setHelpOpen] = useState(false);
+  const viewCart = onViewCart ?? (() => nav('/details'));
+  // the saved label belongs to one pack (a jar wrap unless it was made for the pouch or sachet): the window opens on that pack
+  const labelPack: Pack = banner?.pack && packsOf(product).includes(banner.pack) ? banner.pack : 'jar';
+  const [pack, setPack] = useState<Pack>(labelPack);
   const firstJar = useFirstJarLabel(product);
 
   // Handle ESC key to close
@@ -53,14 +67,40 @@ export function Product3DModal({
   // Resolves the local displayable image URL (data URL or local blob, avoiding inaccessible S3 URLs)
   const displayUrl = getBannerDisplayUrl(banner);
 
+  // A peanut butter cup label is a print layout (curved wrap + round lid sticker): its wrap is laid flat for the cup's side
+  // and its sticker goes on the lid. `cupArt` is that, for the saved label's picture; undefined while it is being made.
+  const cupLabel = jarKind(product) === 'cup' && labelPack === 'jar' && !!displayUrl;
+  // a label already prepared (the inquiry lists do it as they show) opens straight on the cup, with no waiting
+  const [cupArt, setCupArt] = useState<{ src: string; art: CupArt | null } | undefined>(() => {
+    const known = cupLabel && displayUrl ? cupArtCached(displayUrl) : undefined;
+    return known === undefined ? undefined : { src: displayUrl, art: known };
+  });
+  useEffect(() => {
+    if (!cupLabel || !displayUrl) return;
+    let live = true;
+    void cupArtFrom(displayUrl).then((art) => live && setCupArt({ src: displayUrl, art }));
+    return () => {
+      live = false;
+    };
+  }, [cupLabel, displayUrl]);
+  const flat = cupLabel && cupArt?.src === displayUrl ? cupArt.art : null;
+  const cupPending = cupLabel && cupArt?.src !== displayUrl;
+
   const appliedBanner: BannerLike | null = (banner && displayUrl)
-    ? {
-        image: displayUrl,
-        thumb: banner.thumbnail || displayUrl,
-        title: `${product.name} label`,
-        slug: banner.templateSlug,
-      }
+    ? flat
+      ? // the saved cup label: its wrap laid flat, its sticker on the lid (no logo is placed on the flat picture)
+        { image: flat.image, thumb: banner.thumbnail || displayUrl, width: flat.width, height: flat.height, title: `${product.name} label`, slug: banner.templateSlug, noLogo: true, lidImage: flat.lid ?? undefined }
+      : {
+          image: displayUrl,
+          thumb: banner.thumbnail || displayUrl,
+          title: `${product.name} label`,
+          slug: banner.templateSlug,
+          // a pouch or sachet label already carries its brand: no logo is placed on it
+          ...(labelPack !== 'jar' ? { ownLogo: true } : {}),
+        }
     : null;
+  // the customer's label on the pack it was made for; the other packs wear their ready sample label
+  const mine = pack === labelPack ? appliedBanner : null;
 
   const specDetails = {
     brand: brandName.trim() || 'YOUR BRAND',
@@ -84,6 +124,21 @@ export function Product3DModal({
 
         {/* 3D Visualizer Stage */}
         <div className="pmodal-art" style={{ ['--tint' as string]: tintOf(product.id) }}>
+          <button
+            type="button"
+            className="pmodal-art-help"
+            onClick={() => setHelpOpen(true)}
+            aria-haspopup="dialog"
+            aria-label="Help"
+            title="Need help? Connect with an expert"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3" />
+              <path d="M12 17h.01" />
+            </svg>
+            <span>Help</span>
+          </button>
           <LabelView
             className="pmodal-3d"
             zoomable
@@ -94,8 +149,10 @@ export function Product3DModal({
               design: ownDesign(product.id),
               details: specDetails,
             }}
-            banner={pack === 'jar' ? (appliedBanner ?? firstJar) : (defaultBagLabel(product, pack) ?? appliedBanner)}
-            waiting={pack === 'jar' && !appliedBanner && firstJar === undefined}
+            // a cup's saved label is a print layout: it is never put on the cup as it is (that shows a tiny label on a tall white cup
+            // until the flat wrap is ready), so the spinner shows until then
+            banner={pack === 'jar' ? (cupPending ? null : (mine ?? firstJar)) : (mine ?? defaultBagLabel(product, pack) ?? appliedBanner)}
+            waiting={pack === 'jar' && ((!mine && firstJar === undefined) || (!!mine && cupPending))}
             pack={pack}
             autoTurn={false}
           />
@@ -164,15 +221,48 @@ export function Product3DModal({
 
           {/* Action Buttons */}
           <div className="modal-actions" style={{ marginTop: 'auto', paddingTop: '16px' }}>
-            <button type="button" className="btn btn-lime" onClick={onEdit}>
+            <button type="button" className="btn btn-lime" onClick={() => onEdit(pack)}>
               {appliedBanner ? 'Edit this label' : 'Design your label'}
             </button>
-            <button type="button" className="btn btn-ghost" onClick={onClose}>
-              Close Preview
+            <button type="button" className="btn btn-outline" onClick={() => setHelpOpen(true)}>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3" />
+                <path d="M12 17h.01" />
+              </svg>
+              Help
             </button>
           </div>
+          <button type="button" className="btn btn-dark btn-block pmodal-cart" onClick={viewCart}>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <circle cx="9" cy="20" r="1.4" />
+              <circle cx="18" cy="20" r="1.4" />
+              <path d="M2.5 3h2.6l2.6 12.2a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.2L21.5 7H6" />
+            </svg>
+            View cart
+          </button>
         </div>
       </div>
+
+      {helpOpen && (
+        <HelpModal
+          title="Connect with an expert"
+          initial={{
+            name: customer?.fullName ?? '',
+            phone: customer?.phone ?? '',
+            email: customer?.email ?? '',
+          }}
+          details={{
+            Brand: brandName.trim() || customer?.brandName || '',
+            Product: product.name,
+            Flavour: flavour,
+            Pack: pack,
+            ...(pack === 'jar' && packKg ? { Size: `${packKg} kg jar` } : {}),
+            ...(appliedBanner?.slug ? { Template: appliedBanner.slug } : {}),
+          }}
+          onClose={() => setHelpOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -106,6 +106,30 @@
   text-align: left;
 }
 
+/* "3D view": opens the 3D mockup; a labelled, outlined button so it reads as its own section, not just an icon */
+.mockup {
+  flex: none;
+  gap: 7px;
+  height: 36px;
+  padding: 0 16px 0 13px;
+  border: 1.5px solid var(--ed-border);
+  border-radius: 999px;
+  background: var(--ed-surface);
+  color: var(--ed-text);
+  font: 700 13px / 1 var(--font-sans);
+  white-space: nowrap;
+  transition: border-color var(--ed-dur), background var(--ed-dur), color var(--ed-dur);
+}
+.mockup svg {
+  flex: none;
+  color: var(--ed-accent);
+}
+.mockup:hover:not(:disabled) {
+  border-color: var(--ed-accent);
+  background: var(--ed-accent-glow);
+  color: var(--ed-text);
+}
+
 .share {
   gap: 6px;
   margin-left: 2px;
@@ -133,6 +157,14 @@
 }
 .bar[data-narrow] .btnLabel {
   display: none;
+}
+/* the host page's own buttons (the label shop's Back and Save) and the actions never squeeze each other */
+.bar[data-narrow] .left,
+.bar[data-narrow] .right {
+  gap: 4px;
+}
+.bar[data-narrow] .left > * {
+  flex-shrink: 0;
 }
 
 @media (max-width: 1180px) {

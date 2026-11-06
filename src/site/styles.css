@@ -38,6 +38,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .btn-ghost { background: #fff; color: var(--ink); border-color: var(--line-2); }
 .btn-ghost:hover { border-color: var(--ink); }
 .btn-dark { background: var(--ink); color: #fff; }
+/* white pill with a thin dark outline (used for "Add to Cart") */
+.btn-outline { background: #fff; color: var(--ink); border: 1px solid var(--ink); }
+.btn-outline:hover:not([disabled]) { background: var(--ink); color: #fff; }
 .btn-sm { min-height: 40px; padding: 0 16px; font-size: .86rem; }
 .btn[disabled] { opacity: .45; cursor: not-allowed; box-shadow: none; }
 .linkbtn { border: 0; background: none; padding: 0; color: var(--danger); font-weight: 700; text-decoration: underline; cursor: pointer; font-size: .84rem; }
@@ -440,6 +443,7 @@ input, select, textarea { transition: border-color .15s, box-shadow .15s; }
 .cform { list-style: none; margin: 4px 0; padding: 0; display: grid; gap: 8px; }
 .cform li { display: flex; justify-content: space-between; gap: 12px; background: var(--soft); border-radius: var(--r-sm); padding: 10px 14px; }
 .modal-actions { display: flex; gap: 10px; margin-top: 6px; }
+.pmodal-cart { margin-top: 10px; gap: 8px; }
 .btn.wa { background: #25d366; color: #062b13; }
 
 /* footer */
@@ -783,6 +787,9 @@ h2 { font-size: clamp(2rem, 3.4vw, 2.9rem); line-height: 1.08; }
 .flv { margin: 4px 0 0; }
 .pcard-foot { margin-top: auto; padding-top: 14px; }
 .pcard-foot .btn { width: 100%; min-height: 46px; }
+/* "Add to Cart" (or "Remove") with "Edit label" under it, both the card's full width */
+.pcard-foot.pcard-foot-two { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.pcard-foot.pcard-foot-two .btn { min-width: 0; }
 .incart { font-size: .8rem; font-weight: 700; color: var(--brand-d); text-align: center; }
 .linkbtn.nutri { align-self: center; margin: 4px 0 0; padding-top: 10px; width: 100%; border-top: 1px solid var(--line); text-align: center; text-decoration: none; color: var(--brand-ink); font-weight: 700; }
 .linkbtn.nutri:hover { text-decoration: underline; }
@@ -1249,6 +1256,11 @@ h2 { font-size: clamp(2rem, 3.4vw, 2.9rem); line-height: 1.08; }
 .card3d-build { position: absolute; inset: 0 0 34px; opacity: 0; pointer-events: none; overflow: hidden; z-index: -1; }
 .card3d-build .card3d-view { position: absolute; inset: 0; }
 .card3d .jar-card { max-height: 210px; }
+/* the pack shape shown while a card's 3D picture is drawn: a soft, shimmering tub silhouette in the card's place (no drawn stand-in for the product) */
+.card3d-wait { position: absolute; inset: 0 0 34px; display: grid; place-items: center; pointer-events: none; }
+.card3d-wait span { width: 46%; max-width: 150px; aspect-ratio: 0.82; border-radius: 22px 22px 18px 18px; background: linear-gradient(100deg, rgba(255,255,255,.35) 20%, rgba(255,255,255,.85) 45%, rgba(255,255,255,.35) 70%) 0 0 / 260% 100%, rgba(26, 37, 4, .06); box-shadow: inset 0 14px 0 rgba(26, 37, 4, .06); animation: card3dShimmer 1.4s ease-in-out infinite; }
+@keyframes card3dShimmer { from { background-position: 130% 0, 0 0; } to { background-position: -130% 0, 0 0; } }
+@media (prefers-reduced-motion: reduce) { .card3d-wait span { animation: none; } }
 .card3d-packs { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); display: flex; gap: 4px; padding: 3px; background: rgba(255,255,255,.9); border: 1px solid var(--line); border-radius: 999px; box-shadow: 0 1px 4px rgba(0,0,0,.06); z-index: 3; }
 .card3d-packs button { border: 0; background: transparent; padding: 4px 10px; border-radius: 999px; font: inherit; font-size: .72rem; font-weight: 700; color: var(--muted); cursor: pointer; transition: background .3s, color .3s; }
 .card3d-packs button:disabled { opacity: .45; cursor: default; }
@@ -1310,7 +1322,8 @@ h2 { font-size: clamp(2rem, 3.4vw, 2.9rem); line-height: 1.08; }
 .clients-track li:hover img { transform: scale(1.08); opacity: 1; filter: none; }
 @keyframes clients-scroll { to { transform: translateX(-50%); } }
 @media (max-width: 640px) { .clients-track { gap: 44px; animation-duration: 28s; } .clients-track li { height: 62px; } .clients-track img { height: 62px; max-width: 150px; } }
-@media (prefers-reduced-motion: reduce) { .clients-view { overflow-x: auto; } .clients-track { animation: none; } }
+/* keep the logos moving for reduced-motion users too, just slower and gentler (still pauses on hover) */
+@media (prefers-reduced-motion: reduce) { .clients-track { animation-duration: 70s; } .clients-track li:hover img { transform: none; } }
 
 /* ---- client reviews: cards scrolling by, like the logos ---- */
 .reviews { padding: 64px 0 56px; background: #fbfdf2; border-top: 1px solid var(--line); text-align: center; }
@@ -2110,12 +2123,31 @@ html { scroll-padding-top: 140px; }
 .editor-opening b, .editor-saving b { color: var(--ink); font-size: 1.1rem; }
 .editor-opening span, .editor-saving span { color: var(--muted); font-size: .9rem; }
 div.editor-shell > .editor-opening { position: static; flex: 1; }
+/* Help: a round icon button at the bottom right, just above the editor's own zoom buttons and page strip */
+.editor-help { position: absolute; right: 18px; bottom: 128px; z-index: 2; display: grid; place-items: center; width: 52px; height: 52px; padding: 0; border: 1px solid var(--line-2); border-radius: 50%; background: #fff; color: var(--brand-d); cursor: pointer; box-shadow: 0 12px 26px -12px rgba(16, 24, 40, .5); transition: background-color .15s, border-color .15s, transform .15s; animation: siteModalFadeIn .3s ease both; }
+.editor-help svg { display: block; }
+/* Help popup: the contact form inside the modal box, without a second card around it */
+.modal-box.help-modal { width: min(600px, 100%); padding: 28px 28px 24px; }
+.cform-card.in-modal { border: 0; box-shadow: none; padding: 0; border-radius: 0; background: transparent; }
+.cform-card.in-modal h3 { padding-right: 40px; }
+/* Floating help button on the home, products and details pages: sits above the WhatsApp button */
+.help-float { position: fixed; right: 25px; bottom: 150px; z-index: 70; display: grid; place-items: center; width: 52px; height: 52px; padding: 0; border: 1px solid var(--line-2); border-radius: 50%; background: #fff; color: var(--brand-d); cursor: pointer; box-shadow: 0 10px 24px -10px rgba(16, 24, 40, .45); transition: background-color .15s, border-color .15s, transform .15s; }
+.help-float svg { display: block; }
+.help-float:hover { background: #f4f9de; border-color: var(--brand); transform: translateY(-1px); }
+.help-float:focus-visible { outline: 0; box-shadow: 0 0 0 4px var(--focus); }
+@media (max-width: 640px) { .help-float { right: 17px; bottom: 130px; width: 46px; height: 46px; } }
+@media (max-width: 600px) { .help-float { right: 10px; bottom: 118px; } }
+.editor-help:hover { background: #f4f9de; border-color: var(--brand); transform: translateY(-1px); }
+.editor-help:focus-visible { outline: 0; box-shadow: 0 0 0 4px var(--focus); }
 @media (max-width: 760px) {
   .editor-bar { height: 58px; padding: 0 12px; gap: 10px; }
   .editor-back span { display: none; }
   .editor-back { padding: 0 11px; }
   .editor-hint { display: none; }
   .editor-prod small { display: none; }
+  /* phones: above the editor's tool bar, page strip and zoom buttons at the bottom */
+  .editor-help { right: 12px; bottom: 196px; width: 46px; height: 46px; }
+  .modal-box.help-modal { padding: 24px 18px 20px; max-height: 94vh; }
 }
 
 /* ---- hero: a full-size jar, products on top and their labels below, side by side in one small box ---- */
@@ -2200,7 +2232,13 @@ div.editor-shell > .editor-opening { position: static; flex: 1; }
 .dt-help a { color: var(--brand-ink, #5c7a10); font-weight: 700; }
 @media (max-width: 900px) { .details-side .sticky { position: static; } }
 @media (prefers-reduced-motion: reduce) { .details-form * { transition: none !important; } }
-.details-form .qty-row { padding-bottom: 22px; } .details-form .qty-row .applied-pill { margin-top: 4px; }
+/* every product card keeps its bottom padding, the last one too: the list's ".site .qty-row:last-child" rule (padding 0) is for the plain divided list, not these cards */
+.details-form .qty-row, .details-form .qty-row:last-child { padding-bottom: 22px; } .details-form .qty-row .applied-pill { margin-top: 4px; }
+/* "View more products": an open slot under the product cards that leads back to the range */
+/* the side summary and the button under it stick together (the card inside no longer sticks on its own) */
+.dt-side-stack { position: sticky; top: 112px; display: grid; gap: 14px; }
+.dt-side-stack .sticky { position: static; }
+@media (max-width: 900px) { .dt-side-stack { position: static; } }
 
 /* ---- the 3D preview window: a big, sharp pack on a soft stage, with calm details beside it ---- */
 .product-3d-modal { width: min(1060px, 100%); grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 0; padding: 0; overflow: hidden; border-radius: 28px; }
@@ -2215,14 +2253,52 @@ div.editor-shell > .editor-opening { position: static; flex: 1; }
 .product-3d-modal .pmodal-banner-status { border-radius: 16px; border-color: #e3ecc5; padding: 16px; gap: 12px; }
 .product-3d-modal .banner-thumb-box { width: 110px; height: 66px; border-radius: 10px; }
 .product-3d-modal .banner-thumb-box img { object-fit: contain; background: #fff; }
-.product-3d-modal .modal-actions { display: flex; gap: 10px; }
-.product-3d-modal .modal-actions .btn { min-height: 50px; border-radius: 999px; }
+.product-3d-modal .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.product-3d-modal .modal-actions .btn { min-height: 50px; border-radius: 999px; width: 100%; }
 .product-3d-modal .modal-x { top: 16px; right: 16px; z-index: 5; background: rgba(255, 255, 255, .92); box-shadow: 0 6px 16px -8px rgba(16, 24, 40, .4); }
+.product-3d-modal .pmodal-art-help {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px 0 10px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .95);
+  color: var(--brand-d);
+  font-weight: 700;
+  font-size: .86rem;
+  cursor: pointer;
+  box-shadow: 0 6px 18px -6px rgba(16, 24, 40, .25);
+  transition: background-color .15s, border-color .15s, transform .15s, box-shadow .15s;
+}
+.product-3d-modal .pmodal-art-help:hover {
+  background: #f4f9de;
+  border-color: var(--brand);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px -6px rgba(92, 122, 16, .35);
+}
+.product-3d-modal .pmodal-art-help:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 4px var(--focus);
+}
+.product-3d-modal .pmodal-art-help svg {
+  flex: none;
+}
+.modal.help-modal-backdrop { z-index: 350; }
 @media (max-width: 860px) {
   .product-3d-modal { grid-template-columns: 1fr; max-height: 92vh; overflow-y: auto; }
   .product-3d-modal .pmodal-art { min-height: 420px; padding-bottom: 76px; }
+  .product-3d-modal .pmodal-art-help { top: 12px; left: 12px; height: 34px; padding: 0 12px 0 8px; font-size: .82rem; }
   .product-3d-modal .pmodal-3d { height: min(380px, 52vh); }
   .product-3d-modal .pmodal-info { padding: 24px 20px 24px; }
+}
+@media (max-width: 480px) {
+  .product-3d-modal .modal-actions .btn { font-size: .86rem; padding: 0 10px; }
 }
 .modal-box.pmodal.product-3d-modal { padding: 0; gap: 0; } .modal-box.pmodal.product-3d-modal .pmodal-art { border-radius: 0; }
 
@@ -2332,3 +2408,11 @@ div.editor-shell > .editor-opening { position: static; flex: 1; }
   .cats .cat-label b { font-size: .95rem; }
   .cats .cat-label small { font-size: .74rem; }
 }
+
+/* the peanut butter cup in the inquiry lists: a picture of its 3D cup (see PackIcon), a soft shimmer while it is drawn */
+.pack-icon { position: relative; display: grid; place-items: center; aspect-ratio: 0.8; }
+.pack-icon img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.pack-icon-wait { width: 78%; height: 82%; border-radius: 10px 10px 8px 8px; background: linear-gradient(100deg, rgba(255,255,255,.35) 20%, rgba(255,255,255,.85) 45%, rgba(255,255,255,.35) 70%) 0 0 / 260% 100%, rgba(26, 37, 4, .07); animation: card3dShimmer 1.4s ease-in-out infinite; }
+.pack-icon-build { position: absolute; left: 0; top: 0; width: 240px; height: 300px; opacity: 0; pointer-events: none; overflow: hidden; z-index: -1; }
+.pack-icon-build .pack-icon-view { position: absolute; inset: 0; }
+@media (prefers-reduced-motion: reduce) { .pack-icon-wait { animation: none; } }

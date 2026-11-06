@@ -1,4 +1,5 @@
-import { useId } from 'react';
+import { useEffect, useId, useState } from 'react';
+import { cupArtFrom } from '../lib/cupLabel';
 import type { Product } from '../data/catalog';
 import { ART, ART_FOR } from '../data/art';
 import { TPLS, inkOn, lum } from '../data/labelTemplates';
@@ -235,7 +236,29 @@ interface Props {
 }
 
 /** A product jar with its own label design, in the style of the blueprint's hero and range cards. */
-export function ProductJar({ product, flavour, brand = '', className, banner }: Props) {
+/**
+ * A cup product's saved label is a print layout (curved wrap + round lid sticker): drawn as it is, the small picture shows
+ * the whole sheet squeezed onto the jar. Its wrap is laid flat first (the middle, the front of the label, then faces out).
+ * Until that is ready the product's own design is shown; a picture that is not a cup layout is used as it is.
+ */
+function useCupWrap(product: Product, banner: string | undefined): string | undefined {
+  const cup = !!product.cupLabel && !!banner;
+  const [flat, setFlat] = useState<{ src: string; image: string | null } | null>(null);
+  useEffect(() => {
+    if (!cup || !banner) return;
+    let live = true;
+    void cupArtFrom(banner).then((art) => live && setFlat({ src: banner, image: art?.image ?? null }));
+    return () => {
+      live = false;
+    };
+  }, [cup, banner]);
+  if (!cup) return banner;
+  if (flat?.src !== banner) return undefined;
+  return flat.image ?? banner;
+}
+
+export function ProductJar({ product, flavour, brand = '', className, banner: picked }: Props) {
+  const banner = useCupWrap(product, picked);
   const id = 'j' + useId().replace(/[^a-zA-Z0-9]/g, '');
   return <div className={className} dangerouslySetInnerHTML={{ __html: jarSvg(product, flavour ?? product.flavours[0], brand, id, banner) }} />;
 }

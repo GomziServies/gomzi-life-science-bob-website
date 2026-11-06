@@ -1,6 +1,7 @@
 import { AWS_FILES, AWS_FILES_HOST, CRM_API, EDITOR_API, EDITOR_MEDIA } from './config';
 import type { Customer, Banner, CartLine } from '../state/order';
 import { productById } from '../data/catalog';
+import { categoryFilter } from '../../lib/templateCollections';
 
 async function json<T>(res: Response): Promise<T> {
   const body = await res.json().catch(() => ({}));
@@ -176,6 +177,10 @@ export interface GalleryBanner {
   ownLogo?: boolean;
   /** The picture to wrap while the sharp one loads, when `thumb` is not a small copy of the wrap (a ready pack label). */
   lowImage?: string;
+  /** No logo is placed on it (a cup label laid flat: the template's logo place does not match the flat picture). */
+  noLogo?: boolean;
+  /** A cup label's round lid sticker (transparent round it), put on top of the 3D cup's lid. */
+  lidImage?: string;
 }
 
 /** A template's picture: from the S3 bucket when its address is one of the company's file links, otherwise from the editor's media folder. */
@@ -190,7 +195,7 @@ const mediaUrl = (url: string) => {
  * none, while the API serves the same preview with them, so read it from there. The `.webp` copy
  * also sidesteps the hotlink rule that answers 403 to cross-site requests for PNG and JPEG.
  */
-const bannerImageUrl = (slug: string) => `${EDITOR_MEDIA}/templates/previews/${encodeURIComponent(slug)}.webp`;
+export const bannerImageUrl = (slug: string) => `${EDITOR_MEDIA}/templates/previews/${encodeURIComponent(slug)}.webp`;
 /** Where the brand logo sat on a template's label, as shares of the picture (`x`, `y`, `w`, `h`), or null when the template has none. */
 export interface LogoSlot {
   x: number;
@@ -220,7 +225,8 @@ export function listGalleryBanners(category: string): Promise<GalleryBanner[]> {
   if (!category) return Promise.resolve([]);
   let hit = bannerCache.get(category);
   if (!hit) {
-    hit = fetch(`${EDITOR_API}/templates/?${new URLSearchParams({ category, page_size: '100' })}`)
+    // a collection (peanut butter) is its server category narrowed by its preset
+    hit = fetch(`${EDITOR_API}/templates/?${new URLSearchParams({ ...categoryFilter(category), page_size: '100' })}`)
       .then((res) => json<{ results?: TemplateRow[] } | TemplateRow[]>(res))
       .then((body) => {
         const rows = Array.isArray(body) ? body : (body.results ?? []);

@@ -10,10 +10,13 @@ export interface JarSceneProps {
   wrap: HTMLCanvasElement | null;
   /** The label's printed size in mm. */
   mm: { w: number; h: number };
-  kind: 'tub' | 'jar' | 'bottle' | 'pouch' | 'sachet';
+  /** cup: the tapered peanut butter tub with its white snap-on lid. */
+  kind: 'tub' | 'jar' | 'bottle' | 'cup' | 'pouch' | 'sachet';
   jarColor: string;
   /** The design's main colour: the protein tub's lid takes it. */
   accent?: string;
+  /** A cup label's round lid sticker, put on top of the cup's lid. */
+  lidImage?: string;
   /** Share of the wrap taken by the left, middle and right panels. */
   panels: [number, number, number];
   className?: string;
@@ -25,6 +28,34 @@ export interface JarSceneProps {
   onSnapshot?: (dataUrl: string) => void;
   /** The visitor can zoom the pack in and out right on it: scroll over it, or pinch it. There are no buttons. */
   zoomable?: boolean;
+  /** Only a picture is wanted (a product card): drawn once by the shared renderer, never shown or turned (see `cardRenderer`). */
+  snapshotOnly?: boolean;
+}
+
+/**
+ * Product cards' pictures are all drawn by one renderer, made once, with its lighting made once. Building a new WebGL
+ * context for every picture, its lighting and every shader again, was most of the time a card waited for its 3D picture.
+ * Each card's scene still has its own model, materials and label; only the drawing machinery is shared.
+ */
+let cardGL: { renderer: THREE.WebGLRenderer; environment: THREE.Texture } | null = null;
+function cardRenderer() {
+  if (!cardGL) {
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.NoToneMapping;
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const room = new RoomEnvironment();
+    const environment = pmrem.fromScene(room, 0.04).texture;
+    pmrem.dispose();
+    room.dispose();
+    const made = { renderer, environment };
+    // if the browser takes the context back, the next picture makes a new one
+    renderer.domElement.addEventListener('webglcontextlost', () => {
+      if (cardGL === made) cardGL = null;
+    });
+    cardGL = made;
+  }
+  return cardGL;
 }
 
 // Jar shapes, in units of the jar's radius: shoulder height, neck radius, cap radius and height
@@ -59,11 +90,67 @@ const PILL_MODEL = {
 };
 /** The band's size: fixed, as for the protein bottle (its circumference at the usual 177.8 mm label width, and its height in proportion). */
 const PILL_BAND_MM = { w: 177.8, h: (177.8 * (PILL_MODEL.y1 - PILL_MODEL.y0)) / (2 * Math.PI * PILL_MODEL.r) };
+/**
+ * The geometry of the loaded model files. A card's scene uses it as it is (a clone of a model shares it), so the shared
+ * card renderer keeps it on the graphics card from one card to the next instead of sending megabytes of pouch again for each.
+ * Geometry a scene makes or copies for itself is not in here and is freed with the scene.
+ */
+const modelGeometry = new WeakSet<THREE.BufferGeometry>();
+function remember<T extends THREE.Object3D>(root: T): T {
+  root.traverse((o) => {
+    const geometry = (o as THREE.Mesh).geometry;
+    if (geometry) modelGeometry.add(geometry);
+  });
+  return root;
+}
+
 let pillModel: Promise<THREE.Group> | null = null;
-const loadPill = () => (pillModel ??= new OBJLoader().loadAsync(PILL_MODEL.url).catch((e) => {
+const loadPill = () => (pillModel ??= new OBJLoader().loadAsync(PILL_MODEL.url).then(remember).catch((e) => {
   pillModel = null;
   throw e;
 }));
+
+/**
+ * The peanut butter cup (510 g): a white tapered tub, wider at the top, with a white snap-on lid that overhangs it a little,
+ * a thicker lip with small ridges round its bottom and a raised ring on top. Built in code (no model file), in mm.
+ */
+const CUP = {
+  /** The body's radius at its foot and at its top (where the lid sits), the foot's height and the body's top. */
+  footR: 44.5,
+  topR: 52.5,
+  footY: 2,
+  bodyTop: 97,
+  /** The label runs almost the whole height of the body, between these two heights. */
+  labelY0: 4,
+  labelY1: 96,
+  /** The lid: the radius of its skirt and of its lip, its bottom, the top of its lip, its top and the raised ring on it. */
+  lidR: 55,
+  lipR: 55.8,
+  lidY0: 96.5,
+  lipY1: 101.5,
+  lidTop: 118.5,
+  ringTop: 119.2,
+  ribs: 64,
+};
+/** The body's radius at a height on the cup drawn above (it tapers in a straight line from the foot to the top). */
+const cupR0 = (y: number) => CUP.footR + ((CUP.topR - CUP.footR) * (y - CUP.footY)) / (CUP.bodyTop - CUP.footY);
+/** The label band's radius at its bottom and top edge, and its circumference half-way up (mm): the same whatever the label. */
+const CUP_BAND_R0 = cupR0(CUP.labelY0);
+const CUP_BAND_R1 = cupR0(CUP.labelY1);
+const CUP_BAND_C = Math.PI * (CUP_BAND_R0 + CUP_BAND_R1);
+/**
+ * The cup for a label of a given shape (width / height): the band keeps its width round the cup and takes the label's height,
+ * so the label goes once round, as printed (a sleeve laid flat from a real cup label is taller than the drawn one). The side
+ * is as tall as the band, and the lid sits that much higher.
+ */
+function cupFor(labelAspect: number) {
+  const bandH = Math.min(170, Math.max(60, CUP_BAND_C / Math.max(0.1, labelAspect)));
+  const labelY1 = CUP.labelY0 + bandH;
+  const bodyTop = labelY1 + (CUP.bodyTop - CUP.labelY1);
+  // the wall's slope follows from the band's two radii
+  const r = (y: number) => CUP_BAND_R0 + ((CUP_BAND_R1 - CUP_BAND_R0) * (y - CUP.labelY0)) / bandH;
+  return { labelY1, bodyTop, lift: bodyTop - CUP.bodyTop, r, footR: r(CUP.footY), topR: r(bodyTop), band: { w: CUP_BAND_C, h: bandH } };
+}
 
 /** The protein bottle's label band is a fixed size (its circumference by its height, in mm at the tub's usual 450 mm wrap): the bottle never changes shape, any label is fitted onto this band. */
 const TUB_BAND_MM = { w: 450, h: (450 * (JAR_MODEL.labelY1 - JAR_MODEL.labelY0)) / (2 * Math.PI * JAR_MODEL.labelR) };
@@ -111,7 +198,7 @@ function fitToBand(src: HTMLCanvasElement, labelAspect: number, bandA = TUB_BAND
 }
 
 let jarModel: Promise<THREE.Group> | null = null;
-const loadJar = () => (jarModel ??= new OBJLoader().loadAsync(JAR_MODEL.url).catch((e) => {
+const loadJar = () => (jarModel ??= new OBJLoader().loadAsync(JAR_MODEL.url).then(remember).catch((e) => {
   jarModel = null;
   throw e;
 }));
@@ -125,7 +212,7 @@ const POUCH_MODEL = {
   uv: { x0: 0.1987, x1: 0.8057, y0: 0.0917, y1: 0.933 },
 };
 let pouchModel: Promise<THREE.Group> | null = null;
-const loadPouch = () => (pouchModel ??= new GLTFLoader().loadAsync(POUCH_MODEL.url).then((g) => g.scene).catch((e) => {
+const loadPouch = () => (pouchModel ??= new GLTFLoader().loadAsync(POUCH_MODEL.url).then((g) => remember(g.scene)).catch((e) => {
   pouchModel = null;
   throw e;
 }));
@@ -140,7 +227,7 @@ const SACHET_MODEL = {
   back: { x0: 0.015, x1: 0.495, y0: 0.157, y1: 0.655 },
 };
 let sachetModel: Promise<THREE.Group> | null = null;
-const loadSachet = () => (sachetModel ??= new GLTFLoader().loadAsync(SACHET_MODEL.url).then((g) => g.scene).catch((e) => {
+const loadSachet = () => (sachetModel ??= new GLTFLoader().loadAsync(SACHET_MODEL.url).then((g) => remember(g.scene)).catch((e) => {
   sachetModel = null;
   throw e;
 }));
@@ -162,7 +249,7 @@ const SMALL_JAR_MODEL = {
   turn: 168,
 };
 let smallJarModel: Promise<THREE.Group> | null = null;
-const loadSmallJar = () => (smallJarModel ??= new GLTFLoader().loadAsync(SMALL_JAR_MODEL.url).then((g) => g.scene).catch((e) => {
+const loadSmallJar = () => (smallJarModel ??= new GLTFLoader().loadAsync(SMALL_JAR_MODEL.url).then((g) => remember(g.scene)).catch((e) => {
   smallJarModel = null;
   throw e;
 }));
@@ -302,7 +389,7 @@ function bagFaces(wrap: HTMLCanvasElement, panels: [number, number, number], asp
 }
 
 /** A jar with the label wrapped round it. It flips from panel to panel by itself and can be turned by hand. */
-export default function JarScene({ wrap, mm, kind, jarColor, panels, className, autoTurn = true, onUnsupported, onSnapshot, zoomable = false }: JarSceneProps) {
+export default function JarScene({ wrap, mm, kind, jarColor, panels, className, autoTurn = true, onUnsupported, onSnapshot, zoomable = false, snapshotOnly = false, lidImage }: JarSceneProps) {
   const snapRef = useRef(onSnapshot);
   snapRef.current = onSnapshot;
   const host = useRef<HTMLDivElement>(null);
@@ -341,25 +428,36 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
   useEffect(() => {
     const el = host.current;
     if (!el) return;
+    // a card's picture is drawn by the shared renderer (made once); a pack that is shown and turned has its own
+    const shared = snapshotOnly;
     let renderer: THREE.WebGLRenderer;
+    let ownEnv: { pmrem: THREE.PMREMGenerator; room: RoomEnvironment; texture: THREE.Texture } | null = null;
     try {
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+      renderer = shared ? cardRenderer().renderer : new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     } catch {
       onUnsupported?.();
       return;
     }
     // drawn at 2 to 3 times the screen's size and scaled down, so edges and small print stay sharp
-    renderer.setPixelRatio(Math.min(Math.max(window.devicePixelRatio || 1, 2), snapRef.current ? 2.5 : 3));
+    const pixelRatio = Math.min(Math.max(window.devicePixelRatio || 1, 2), snapRef.current ? 2.5 : 3);
+    renderer.setPixelRatio(pixelRatio);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.NoToneMapping; // the colours of the label are shown as they were printed
-    // a pack that can be zoomed and turned in every direction takes all touches itself: the page behind neither scrolls nor zooms
-    renderer.domElement.style.cssText = `display:block;width:100%;height:100%;touch-action:${zoomable ? 'none' : 'pan-y'};cursor:grab`;
-    el.appendChild(renderer.domElement);
+    if (!shared) {
+      // a pack that can be zoomed and turned in every direction takes all touches itself: the page behind neither scrolls nor zooms
+      renderer.domElement.style.cssText = `display:block;width:100%;height:100%;touch-action:${zoomable ? 'none' : 'pan-y'};cursor:grab`;
+      el.appendChild(renderer.domElement);
+    }
 
     const scene = new THREE.Scene();
-    const pmrem = new THREE.PMREMGenerator(renderer);
-    const room = new RoomEnvironment();
-    scene.environment = pmrem.fromScene(room, 0.04).texture;
+    if (shared) {
+      scene.environment = cardRenderer().environment;
+    } else {
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      const room = new RoomEnvironment();
+      ownEnv = { pmrem, room, texture: pmrem.fromScene(room, 0.04).texture };
+      scene.environment = ownEnv.texture;
+    }
     scene.environmentIntensity = 0.9;
     // soft, even light from every side: no hard shading and no shadow side
     scene.add(new THREE.AmbientLight(0xffffff, 1.1));
@@ -369,12 +467,16 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
 
     // -- the jar, in units of its radius --
     const isBag = kind === 'pouch' || kind === 'sachet';
-    const s = SHAPE[isBag ? 'jar' : kind];
+    const isCup = kind === 'cup';
+    // the cup's label band takes the label's shape (see cupFor)
+    const cupBand = isCup ? cupFor(mm.w / mm.h).band : null;
+    const s = SHAPE[isBag || isCup ? 'jar' : kind];
     const isTub = kind === 'tub';
     // the protein bottle keeps its own shape: its band is a fixed size, whatever the label's size
     const isPill = kind === 'bottle';
     const dim = isTub ? TUB_BAND_MM : isPill ? PILL_BAND_MM : mm;
-    const R = isBag ? 50 : dim.w / (2 * Math.PI * (isTub ? TUB.wallR : 1));
+    // the cup is built in mm: one unit is its lid's radius
+    const R = isBag ? 50 : isCup ? CUP.lidR : dim.w / (2 * Math.PI * (isTub ? TUB.wallR : 1));
     const labelH = dim.h / R;
     const group = new THREE.Group();
     scene.add(group);
@@ -392,6 +494,7 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
     };
     let total: number;
     let disposed = false;
+    let lidTexture: THREE.Texture | null = null;
     let smallLabel: THREE.Mesh | null = null;
     // a pack drawn from a model is ready when the model is in the scene; the others at once
     let modelReady = !(kind === 'pouch' || kind === 'sachet' || kind === 'tub' || kind === 'jar' || kind === 'bottle');
@@ -458,6 +561,66 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
           snap();
         })
         .catch(() => undefined);
+    } else if (isCup) {
+      // the peanut butter cup, turned from its outline (mm, scaled so the lid's radius is one unit)
+      const u = (mm: number) => mm / R;
+      const cup = cupFor(mm.w / mm.h);
+      const white = new THREE.MeshPhysicalMaterial({ color: 0xf7f7f4, roughness: 0.42, clearcoat: 0.25, clearcoatRoughness: 0.5, envMapIntensity: 0.9, side: THREE.DoubleSide });
+      // the body: a flat foot with a rounded edge, then the tapered wall up to the top (hidden under the lid)
+      const bodyPts = [new THREE.Vector2(0, 0)];
+      for (let i = 0; i <= 6; i++) {
+        const a = (i / 6) * (Math.PI / 2);
+        bodyPts.push(new THREE.Vector2(u(cup.footR - CUP.footY + CUP.footY * Math.sin(a)), u(CUP.footY - CUP.footY * Math.cos(a))));
+      }
+      bodyPts.push(new THREE.Vector2(u(cup.topR), u(cup.bodyTop)), new THREE.Vector2(0, u(cup.bodyTop)));
+      group.add(new THREE.Mesh(new THREE.LatheGeometry(bodyPts, 160), white));
+      // the label: a tapered band a hair outside the wall; the middle of the picture faces the front
+      const lr0 = u(CUP_BAND_R0 + 0.25);
+      const lr1 = u(CUP_BAND_R1 + 0.25);
+      const band = new THREE.Mesh(new THREE.CylinderGeometry(lr1, lr0, u(cup.band.h), 192, 1, true, Math.PI, Math.PI * 2), labelMat);
+      band.position.y = u((CUP.labelY0 + cup.labelY1) / 2);
+      group.add(band);
+      // the lid (raised by as much as the side grew): its lip at the bottom, the skirt, a rounded shoulder, and a raised ring round the flat top
+      const lidPts = [
+        [cup.topR + 0.3, CUP.lidY0],
+        [CUP.lipR - 0.6, CUP.lidY0],
+        [CUP.lipR, CUP.lidY0 + 0.8],
+        [CUP.lipR, CUP.lipY1 - 0.4],
+        [CUP.lidR, CUP.lipY1],
+        [CUP.lidR, CUP.lidTop - 2.2],
+        [CUP.lidR - 0.4, CUP.lidTop - 0.9],
+        [CUP.lidR - 1.4, CUP.ringTop],
+        [CUP.lidR - 4.6, CUP.ringTop],
+        [CUP.lidR - 5.6, CUP.lidTop],
+        [0, CUP.lidTop],
+      ].map(([r, y]) => new THREE.Vector2(u(r), u(y + cup.lift)));
+      group.add(new THREE.Mesh(new THREE.LatheGeometry(lidPts, 160), white));
+      // small ridges round the lip, as on the real lid
+      const ribs = new THREE.InstancedMesh(new THREE.BoxGeometry(u(0.9), u(CUP.lipY1 - CUP.lidY0 - 1.6), u(0.7)), white, CUP.ribs);
+      const m = new THREE.Matrix4();
+      for (let i = 0; i < CUP.ribs; i++) {
+        const a = (i / CUP.ribs) * Math.PI * 2;
+        m.compose(new THREE.Vector3(Math.sin(a) * u(CUP.lipR + 0.2), u((CUP.lidY0 + CUP.lipY1) / 2 + cup.lift), Math.cos(a) * u(CUP.lipR + 0.2)), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), a), new THREE.Vector3(1, 1, 1));
+        ribs.setMatrixAt(i, m);
+      }
+      group.add(ribs);
+      // the label's round sticker on the lid's flat top; its top faces the back, as when the cup is read from the front
+      if (lidImage) {
+        const stickerMat = new THREE.MeshBasicMaterial({ transparent: true, toneMapped: false });
+        new THREE.TextureLoader().load(lidImage, (t) => {
+          if (disposed) return t.dispose();
+          t.colorSpace = THREE.SRGBColorSpace;
+          t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+          lidTexture = t;
+          stickerMat.map = t;
+          stickerMat.needsUpdate = true;
+        });
+        const sticker = new THREE.Mesh(new THREE.CircleGeometry(u(CUP.lidR - 5.9), 128), stickerMat);
+        sticker.rotation.x = -Math.PI / 2;
+        sticker.position.y = u(CUP.lidTop + cup.lift) + 0.003;
+        group.add(sticker);
+      }
+      total = u(CUP.ringTop + cup.lift) + 0.06;
     } else if (isTub) {
       // the protein tub model, its label band stretched to the label's height (the body above it moves up by the same amount)
       const k = (TUB.wallR + 0.004) / JAR_MODEL.labelR;
@@ -869,7 +1032,8 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
       group.rotation.y = yaw;
       renderer.render(scene, camera);
     };
-    raf = requestAnimationFrame(loop);
+    // a card's picture is drawn once, when it is taken (see snap); only a pack that is shown is drawn every frame
+    if (!shared) raf = requestAnimationFrame(loop);
 
     const textures: THREE.Texture[] = [];
     const texOf = (face: HTMLCanvasElement, model = false) => {
@@ -906,6 +1070,12 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
       snapped = true;
       requestAnimationFrame(() => {
         if (disposed) return;
+        if (shared) {
+          // the shared renderer was last sized for another card: this card's size and sharpness first
+          renderer.setPixelRatio(pixelRatio);
+          fit();
+          group.rotation.y = 0;
+        }
         renderer.render(scene, camera);
         snapRef.current?.(renderer.domElement.toDataURL('image/webp', 0.92));
       });
@@ -982,7 +1152,7 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
           }
           labelMat.needsUpdate = true;
         } else {
-          labelMat.map = canvas ? texOf(isTub ? fitToBand(canvas, mm.w / mm.h) : isPill ? fitToBand(canvas, mm.w / mm.h, PILL_BAND_MM.w / PILL_BAND_MM.h) : canvas) : null;
+          labelMat.map = canvas ? texOf(isTub ? fitToBand(canvas, mm.w / mm.h) : isPill ? fitToBand(canvas, mm.w / mm.h, PILL_BAND_MM.w / PILL_BAND_MM.h) : cupBand ? fitToBand(canvas, mm.w / mm.h, cupBand.w / cupBand.h) : canvas) : null;
           if (isPill && labelMat.map) labelMat.map.wrapS = THREE.RepeatWrapping; // the label's picture carries on past its right edge at the back
           labelMat.needsUpdate = true;
         }
@@ -1007,17 +1177,26 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
       renderer.domElement.removeEventListener('pointerup', up);
       renderer.domElement.removeEventListener('pointercancel', up);
       textures.splice(0).forEach((t) => t.dispose());
+      lidTexture?.dispose();
       scene.traverse((o) => {
         const mesh = o as THREE.Mesh;
-        mesh.geometry?.dispose?.();
+        // the shared renderer keeps the model files' geometry for the next card (see modelGeometry)
+        if (!(shared && mesh.geometry && modelGeometry.has(mesh.geometry))) mesh.geometry?.dispose?.();
+        // on the shared renderer the materials are left to be collected, not disposed: disposing them would also throw away
+        // their compiled shaders, which the next card's materials (made the same way) reuse
+        if (shared) return;
         const mat = mesh.material as THREE.Material | THREE.Material[] | undefined;
         (Array.isArray(mat) ? mat : mat ? [mat] : []).forEach((x) => x.dispose());
       });
-      pmrem.dispose();
-      room.dispose();
-      renderer.dispose();
-      renderer.forceContextLoss();
-      renderer.domElement.remove();
+      if (ownEnv) {
+        ownEnv.pmrem.dispose();
+        ownEnv.room.dispose();
+      }
+      if (!shared) {
+        renderer.dispose();
+        renderer.forceContextLoss();
+        renderer.domElement.remove();
+      }
       api.current = null;
       el.removeEventListener('wheel', onWheel);
       el.removeEventListener('gesturestart', noGesture);
@@ -1029,7 +1208,7 @@ export default function JarScene({ wrap, mm, kind, jarColor, panels, className, 
     };
     // the jar is rebuilt when its shape or colour changes; the label picture is swapped in below
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kind, mm.w, mm.h, jarColor, panels[0], panels[1], panels[2]]);
+  }, [kind, mm.w, mm.h, jarColor, panels[0], panels[1], panels[2], snapshotOnly, lidImage]);
 
   useEffect(() => {
     api.current?.setWrap(wrap);

@@ -3,6 +3,8 @@ import { useSyncExternalStore } from 'react';
 /** Shared state of the shop's 3D pictures: whether the models are loaded, how many first pictures are drawn, whether the page has been released from its loading screen, and the one clock every card changes pack by. */
 /** The page waits behind its loading screen for the pictures of the cards at the top (what a visitor sees first); the other cards go on drawing right after, in order, usually before they are scrolled to. */
 const FIRST_PICTURES = 9;
+/** Show the products straight away instead of holding the page behind the loading screen until the first 3D pictures are drawn. */
+const SHOW_AT_ONCE = true;
 /** The longest the loading screen is ever shown. */
 const MAX_WAIT_MS = 45000;
 const CHANGE_MS = 3000;
@@ -48,9 +50,12 @@ export function startPreload(cardsAtTop: number) {
       emit();
       check(needed);
     });
-  window.setTimeout(release, MAX_WAIT_MS); // never keep the page hidden for longer than this
   // the cards report their pictures: see notePicture
   neededPictures = needed;
+  // the page is shown at once: every card shows its quick drawn jar until its 3D picture is ready, then swaps to it
+  // (waiting behind a loading screen for the first pictures kept the products hidden for half a minute on a first visit)
+  if (SHOW_AT_ONCE) release();
+  else window.setTimeout(release, MAX_WAIT_MS); // never keep the page hidden for longer than this
 }
 let neededPictures = FIRST_PICTURES;
 
@@ -63,7 +68,7 @@ export function beginPage(cards: number) {
   const needed = Math.min(FIRST_PICTURES, Math.max(0, cards));
   neededPictures = needed;
   pictures = 0;
-  if (needed === 0) return;
+  if (needed === 0 || SHOW_AT_ONCE) return;
   released = false;
   if (clock) window.clearInterval(clock);
   clock = undefined;

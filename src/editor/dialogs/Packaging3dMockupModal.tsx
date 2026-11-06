@@ -20,6 +20,30 @@ import {
   type MockupContainer,
 } from '../packaging/mockupMap'
 import { usePackagingGuidesStore } from '../store/packagingGuidesStore'
+import { detectCupWrap, type CupFit } from '../packaging/cupWrap'
+import { buildCupModel } from '../packaging/cupModel'
+
+/** The containers on offer; "cup" (the peanut butter cup) only when the design is a cup label: a curved wrap and a lid sticker. */
+type Choice = MockupContainer | 'cup'
+/** The real cup's lid is white; it stays white until another lid colour is picked. */
+const CUP_LID = '#f7f7f4'
+
+/** The stage behind the pack: the same soft green glow as the shop's 3D preview window (pale in the middle, deeper at the edges). */
+const STAGE = 'radial-gradient(70% 60% at 50% 42%, #fcfef5 0%, #eef6d6 62%, #dfeab0 100%)'
+/** The same stage painted on a 2D canvas, for the downloaded picture. */
+function paintStage(g: CanvasRenderingContext2D, w: number, h: number) {
+  g.save()
+  // an ellipse 70% wide and 60% high round the point 50% across, 42% down
+  g.translate(w * 0.5, h * 0.42)
+  g.scale(0.7 * w, 0.6 * h)
+  const grad = g.createRadialGradient(0, 0, 0, 0, 0, 1)
+  grad.addColorStop(0, '#fcfef5')
+  grad.addColorStop(0.62, '#eef6d6')
+  grad.addColorStop(1, '#dfeab0')
+  g.fillStyle = grad
+  g.fillRect(-w, -h, 2 * w, 2 * h)
+  g.restore()
+}
 
 /** How the label's paper reacts to light, for each finish. The default matte keeps a faint sheen so colours are not flat. */
 const FINISHES = {
@@ -40,11 +64,15 @@ export function Packaging3dMockupModal() {
   const dielineId = useEditorState((st) => st.doc.meta?.dielineId)
   const docWidth = useEditorState((st) => st.doc.width)
   const docHeight = useEditorState((st) => st.doc.height)
-  const [picked, setPicked] = useState<MockupContainer | null>(null)
-  const containerType: MockupContainer = picked ?? (dielineById(dielineId) ? containerFor(dielineById(dielineId)!) : 'tub')
+  const [picked, setPicked] = useState<Choice | null>(null)
+  // a cup label (the peanut butter cups): its curved wrap and lid sticker, measured from the design's picture when the window opens;
+  // undefined while that is being looked at, null when the design is not a cup label
+  const [cupFit, setCupFit] = useState<CupFit | null | undefined>(undefined)
+  const containerType: Choice = picked ?? (cupFit ? 'cup' : dielineById(dielineId) ? containerFor(dielineById(dielineId)!) : 'tub')
   const [materialFinish, setMaterialFinish] = useState<Finish>('matte')
   const [autoRotate, setAutoRotate] = useState<boolean>(true)
-  const [lidColor, setLidColor] = useState<string>('#111827')
+  const [pickedLid, setLidColor] = useState<string | null>(null)
+  const lidColor = pickedLid ?? (containerType === 'cup' ? CUP_LID : '#111827')
   const [isCapturing, setIsCapturing] = useState<boolean>(false)
   const [zoom, setZoom] = useState<number>(1)
 
@@ -65,24 +93,68 @@ export function Packaging3dMockupModal() {
   const labelWidthMm = dielineNow ? dielineNow.widthMm : pxToMm(docWidth)
   const labelHeightMm = dielineNow ? dielineNow.heightMm : pxToMm(docHeight)
   const sizeNote =
-    containerType === 'tub' || containerType === 'can'
+    containerType === 'cup'
+      ? 'Peanut butter cup: its shape is measured from your curved label, and the round sticker sits on the lid'
+      : containerType === 'tub' || containerType === 'can'
       ? (() => {
           const s = cylinderSpec(labelWidthMm, labelHeightMm, containerType)
           return `Real size: label ${Math.round(labelWidthMm)} × ${Math.round(labelHeightMm)} mm on a Ø${Math.round(s.radiusMm * 2)} mm × ${Math.round(s.totalHeightMm)} mm ${containerType === 'tub' ? 'jar' : 'can'}`
         })()
       : 'Interactive 360° wrap & material lighting preview'
 
+  // When the window opens, the design's picture is looked at (a small copy is enough) to see whether it is a cup label.
   useEffect(() => {
-    if (!showMockup3d || !canvasRef.current) return
+    if (!showMockup3d) return
+    let live = true
+    const done = (fit: CupFit | null) => {
+      if (live) setCupFit(fit)
+    }
+    const fabricCanvas = editor.activeView()?.canvas
+    if (!fabricCanvas) {
+      queueMicrotask(() => done(null))
+    } else {
+      const W = 600
+      const img = new Image()
+      img.onload = () => {
+        const H = Math.max(1, Math.round((W * img.naturalHeight) / Math.max(1, img.naturalWidth)))
+        const c = document.createElement('canvas')
+        c.width = W
+        c.height = H
+        const g = c.getContext('2d', { willReadFrequently: true })
+        if (!g) return done(null)
+        // shrunk smoothly (a rough one-step copy leaves ragged edges that no longer read as clean arcs)
+        g.imageSmoothingEnabled = true
+        g.imageSmoothingQuality = 'high'
+        g.drawImage(img, 0, 0, W, H)
+        try {
+          // why a design is not taken for a cup label goes to the console's debug level, for whoever looks into it
+          done(detectCupWrap(g.getImageData(0, 0, W, H), (why) => console.debug('[3D mockup] not a cup label:', why)))
+        } catch {
+          done(null)
+        }
+      }
+      img.onerror = () => done(null)
+      img.src = fabricCanvas.toDataURL({ format: 'png', multiplier: Math.min(1, (2 * W) / Math.max(1, editor.state.doc.width)) })
+    }
+    return () => {
+      live = false
+      setCupFit(undefined)
+    }
+  }, [showMockup3d, editor])
+
+  useEffect(() => {
+    // the scene waits until it is known whether this is a cup label (it takes a moment), so it is built once, as the right container
+    if (!showMockup3d || !canvasRef.current || cupFit === undefined) return
 
     let animationFrameId = 0
+    let disposed = false
     const canvas = canvasRef.current
     const width = canvas.clientWidth || 700
     const height = canvas.clientHeight || 500
 
     // 1. Scene & Camera
+    // no background of its own: the window's soft green stage (STAGE) shows through behind the pack
     const scene = new THREE.Scene()
-    scene.background = new THREE.Color('#ffffff')
 
     const camera = new THREE.PerspectiveCamera(32, width / height, 0.05, 100)
 
@@ -90,6 +162,7 @@ export function Packaging3dMockupModal() {
     const renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
+      alpha: true,
       preserveDrawingBuffer: true,
       powerPreference: 'high-performance',
     })
@@ -204,8 +277,23 @@ export function Packaging3dMockupModal() {
       return mesh
     }
 
-    if (containerType === 'tub' || containerType === 'can') {
-      const spec = cylinderSpec(labelW, labelH, containerType)
+    if (containerType === 'cup' && cupFit) {
+      // the peanut butter cup, built from the measured wrap once the full-size picture has loaded
+      const size = 2.3
+      extent = size
+      centreY = size / 2
+      // seen a little from above, so the sticker on the lid shows (until the person turns it themselves)
+      if (rotationRef.current.x === 0.1) rotationRef.current.x = 0.34
+      const img = new Image()
+      img.onload = () => {
+        if (disposed) return
+        const cup = buildCupModel(cupFit, () => sharpen(new THREE.Texture(img)), finish, lidColor, size)
+        cup.group.position.y = -cup.height / 2
+        modelGroup.add(cup.group)
+      }
+      if (artUrl) img.src = artUrl
+    } else if (containerType === 'tub' || containerType === 'can') {
+      const spec = cylinderSpec(labelW, labelH, containerType === 'can' ? 'can' : 'tub')
       const k = sceneScale(Math.max(spec.totalHeightMm, spec.maxWidthMm))
       const r = spec.radiusMm * k
       const bodyH = spec.bodyHeightMm * k
@@ -302,7 +390,19 @@ export function Packaging3dMockupModal() {
       renderer.setPixelRatio(3)
       renderer.setSize(w, h, false)
       renderer.render(scene, camera)
-      const url = canvas.toDataURL('image/png')
+      // the download gets the same soft green backdrop as the window (the 3D canvas itself is transparent)
+      const out = document.createElement('canvas')
+      out.width = canvas.width
+      out.height = canvas.height
+      const g = out.getContext('2d')
+      let url: string
+      if (g) {
+        paintStage(g, out.width, out.height)
+        g.drawImage(canvas, 0, 0)
+        url = out.toDataURL('image/png')
+      } else {
+        url = canvas.toDataURL('image/png')
+      }
       renderer.setPixelRatio(before)
       renderer.setSize(w, h, false)
       return url
@@ -378,6 +478,7 @@ export function Packaging3dMockupModal() {
     window.addEventListener('touchend', onTouchEnd)
 
     return () => {
+      disposed = true
       cancelAnimationFrame(animationFrameId)
       observer?.disconnect()
       captureRef.current = null
@@ -392,7 +493,7 @@ export function Packaging3dMockupModal() {
       pmrem.dispose()
       renderer.dispose()
     }
-  }, [showMockup3d, containerType, materialFinish, autoRotate, lidColor, editor, applyZoom])
+  }, [showMockup3d, containerType, materialFinish, autoRotate, lidColor, editor, applyZoom, cupFit])
 
   if (!showMockup3d) return null
 
@@ -494,7 +595,7 @@ export function Packaging3dMockupModal() {
         </div>
 
         {/* 3D Canvas Body */}
-        <div style={{ position: 'relative', width: '100%', height: 'min(380px, 48vh)', flexShrink: 0, background: '#ffffff' }}>
+        <div style={{ position: 'relative', width: '100%', height: 'min(380px, 48vh)', flexShrink: 0, background: STAGE }}>
           <canvas ref={canvasRef} style={{ width: '100%', height: '100%', cursor: 'grab', touchAction: 'none' }} />
 
           {/* Floating instructions */}
@@ -568,9 +669,9 @@ export function Packaging3dMockupModal() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 12, color: '#475569', fontWeight: 600 }}>Container:</span>
             <div style={{ display: 'flex', gap: 3, background: '#f1f5f9', padding: '3px 4px', borderRadius: 9999 }}>
-              {(['tub', 'pouch', 'can', 'box'] as const).map((type) => (
+              {(cupFit ? (['cup', 'tub', 'pouch', 'can', 'box'] as const) : (['tub', 'pouch', 'can', 'box'] as const)).map((type) => (
                 <button key={type} type="button" onClick={() => setPicked(type)} style={{ ...chip(containerType === type), textTransform: 'capitalize' }}>
-                  {type === 'tub' ? 'Tub / Jar' : type === 'pouch' ? 'Pouch' : type === 'box' ? 'Box' : 'Can / Bottle'}
+                  {type === 'cup' ? 'Cup' : type === 'tub' ? 'Tub / Jar' : type === 'pouch' ? 'Pouch' : type === 'box' ? 'Box' : 'Can / Bottle'}
                 </button>
               ))}
             </div>

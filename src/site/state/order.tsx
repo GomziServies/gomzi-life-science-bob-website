@@ -23,6 +23,8 @@ export interface Banner {
   pdfUrl: string;
   jsonUrl: string;
   savedAt: number;
+  /** The pack the label was made for; a jar wrap when not set. A pouch or sachet label is shown on that pack only. */
+  pack?: 'jar' | 'pouch' | 'sachet';
 }
 
 /**
@@ -95,6 +97,8 @@ interface OrderApi extends OrderState {
   setPack: (productId: string, packKg: number) => void;
   removeFromCart: (productId: string) => void;
   setBanner: (productId: string, banner: Banner) => void;
+  /** Fills in a saved label's files once they finish uploading; ignored if that label has been replaced since (other `savedAt`). */
+  patchBanner: (productId: string, savedAt: number, patch: Partial<Banner>) => void;
   clearBanner: (productId: string) => void;
   setCustomer: (patch: Partial<Customer>) => void;
   reset: () => void;
@@ -127,6 +131,12 @@ export function OrderProvider({ children }: { children: ReactNode }) {
           return { ...s, cart: s.cart.filter((l) => l.productId !== productId), banners };
         }),
       setBanner: (productId, banner) => setState((s) => ({ ...s, banners: { ...s.banners, [productId]: banner } })),
+      patchBanner: (productId, savedAt, patch) =>
+        setState((s) => {
+          const current = s.banners[productId];
+          if (!current || current.savedAt !== savedAt) return s;
+          return { ...s, banners: { ...s.banners, [productId]: { ...current, ...patch } } };
+        }),
       clearBanner: (productId) =>
         setState((s) => {
           const { [productId]: _gone, ...banners } = s.banners;

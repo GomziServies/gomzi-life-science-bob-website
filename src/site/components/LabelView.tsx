@@ -180,6 +180,9 @@ export interface BannerLike {
   height?: number;
   ownLogo?: boolean;
   lowImage?: string;
+  noLogo?: boolean;
+  /** A cup label's round lid sticker, put on top of the cup's lid. */
+  lidImage?: string;
 }
 
 interface Props {
@@ -203,12 +206,14 @@ interface Props {
   onSnapshot?: (dataUrl: string) => void;
   /** A ready label is still on its way: nothing is drawn meanwhile (no built-in design is ever shown instead). */
   waiting?: boolean;
+  /** Only the picture is wanted (a product card): drawn once by the shared renderer, never shown (see JarScene). */
+  snapshotOnly?: boolean;
 }
 
 /** The customer's label, either on a 3D jar that flips round or flat, as printed. */
 const NO_SHIFT: LogoShift = { dx: 0, dy: 0 };
 
-export function LabelView({ spec, mode, px = 2600, className, banner, pack = 'jar', logo, logoShift = NO_SHIFT, autoTurn = true, onSnapshot, waiting = false, zoomable = false }: Props) {
+export function LabelView({ spec, mode, px = 2600, className, banner, pack = 'jar', logo, logoShift = NO_SHIFT, autoTurn = true, onSnapshot, waiting = false, zoomable = false, snapshotOnly = false }: Props) {
   const [broken, setBroken] = useState(false);
   const show3d = mode === '3d' && !broken;
   // a ready label is always what the pack wears; the drawn design is only for a product that has no ready label at all
@@ -223,11 +228,11 @@ export function LabelView({ spec, mode, px = 2600, className, banner, pack = 'ja
   const real = mine(realRaw) as typeof realRaw;
   const low = mine(lowRaw) as typeof lowRaw;
   const shown = real ?? low;
-  const placed = useLogoOnBanner(real?.canvas ?? null, useLogoSlot(banner?.ownLogo ? undefined : banner?.slug), logo, logoShift);
+  const placed = useLogoOnBanner(real?.canvas ?? null, useLogoSlot(banner?.ownLogo || banner?.noLogo ? undefined : banner?.slug), logo, logoShift);
   const { c } = lookOf(spec.product.id, spec.design);
   const kind3d = fitPack(spec.product, pack) === 'jar' ? jarKind(spec.product) : fitPack(spec.product, pack);
   // the protein bottle and the jars stay dark, whatever the label's colours; only the tablet bottle follows the label
-  const jarColor = kind3d === 'tub' || kind3d === 'jar' ? '#151515' : banner ? (shown?.dark === false ? '#F1F1EE' : '#151515') : lum(c.S) > 0.5 ? '#F1F1EE' : '#151515';
+  const jarColor = kind3d === 'cup' ? '#F7F7F4' : kind3d === 'tub' || kind3d === 'jar' ? '#151515' : banner ? (shown?.dark === false ? '#F1F1EE' : '#151515') : lum(c.S) > 0.5 ? '#F1F1EE' : '#151515';
   const base = labelMm(spec.product);
   
   const bw = (banner?.width && banner.width > 0) ? banner.width : (shown?.canvas?.width || 0);
@@ -263,7 +268,7 @@ export function LabelView({ spec, mode, px = 2600, className, banner, pack = 'ja
         </div>
       }
     >
-      <JarScene className={className} zoomable={zoomable} autoTurn={autoTurn} onSnapshot={onSnapshot} wrap={wrapCanvas} mm={mm} kind={kind3d} jarColor={jarColor} accent={banner ? undefined : c.P} panels={PANELS} onUnsupported={() => setBroken(true)} />
+      <JarScene className={className} zoomable={zoomable} autoTurn={autoTurn} onSnapshot={onSnapshot} snapshotOnly={snapshotOnly} lidImage={kind3d === 'cup' ? banner?.lidImage : undefined} wrap={wrapCanvas} mm={mm} kind={kind3d} jarColor={jarColor} accent={banner ? undefined : c.P} panels={PANELS} onUnsupported={() => setBroken(true)} />
     </Suspense>
   );
 }

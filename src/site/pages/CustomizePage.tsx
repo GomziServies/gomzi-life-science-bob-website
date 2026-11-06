@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { productById, type Product } from '../data/catalog';
 import { isTeamBanner, TEAM_NAME, useOrder, getBannerDisplayUrl } from '../state/order';
-import { ProductJar } from '../components/ProductJar';
+import { PackIcon } from '../components/PackIcon';
 import { Product3DModal } from '../components/Product3DModal';
 import { preloadJarScene } from '../components/LabelView';
 import { Stepper } from '../components/Stepper';
+import { editsSaved, labelEditPath } from '../lib/labelLinks';
 
 export function CustomizePage() {
   const { cart, banners, customer, allBannersDone } = useOrder();
@@ -69,7 +70,7 @@ export function CustomizePage() {
                   title="Click to see this product in 3D with your label"
                   onClick={() => setPreviewProduct(p)}
                 >
-                  <ProductJar
+                  <PackIcon
                     className="jar-sm"
                     product={p}
                     flavour={l.flavour}
@@ -147,7 +148,7 @@ export function CustomizePage() {
                   </button>
                   <Link
                     className={`btn btn-sm ${banner ? 'btn-ghost' : 'btn-lime'}`}
-                    to={`/customize/${p.id}?returnTo=${encodeURIComponent(`/customize?preview=${p.id}`)}`}
+                    to={labelEditPath(p.id, banner?.pack, `/customize?preview=${p.id}`, editsSaved(banner, banner?.pack))}
                   >
                     {banner ? 'Change label' : 'Choose label'}
                   </Link>
@@ -174,13 +175,7 @@ export function CustomizePage() {
           banner={banners[previewProduct.id]}
           brandName={customer.brandName}
           onClose={closePreview}
-          onEdit={() => {
-            nav(
-              `/customize/${previewProduct.id}?returnTo=${encodeURIComponent(
-                `/customize?preview=${previewProduct.id}`
-              )}`
-            );
-          }}
+          onEdit={(pack) => nav(labelEditPath(previewProduct.id, pack, `/customize?preview=${previewProduct.id}`, editsSaved(banners[previewProduct.id], pack)))}
         />
       )}
     </section>

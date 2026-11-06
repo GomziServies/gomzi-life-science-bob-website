@@ -10,6 +10,8 @@ import { usePageMeta } from '@/lib/usePageMeta'
 import type { EditorHandle } from '@/types/adapter'
 import type { DoryDocument } from '@/types/document'
 import { Button } from '@/ui'
+import { ArrowLeft } from 'lucide-react'
+import styles from './EmbedEditorPage.module.css'
 
 type Load = { kind: 'loading' } | { kind: 'ready'; design: LocalDesign } | { kind: 'error'; notFound: boolean }
 
@@ -101,7 +103,8 @@ export default function EmbedEditorPage() {
         }
         let created: LocalDesign
         if (docUrl === 'message') {
-          created = await createLocalDesign({ title: 'Banner', document: await documentFromParent(product) })
+          const handed = await documentFromParent(product)
+          created = await createLocalDesign({ title: (handed.meta as { title?: string } | undefined)?.title || 'Banner', document: handed })
         } else if (docUrl) {
           created = await createLocalDesign({ title: 'Banner', document: await fetchDocument(docUrl) })
         } else if (template) {
@@ -172,14 +175,14 @@ export default function EmbedEditorPage() {
       meta={initialMeta}
       adapter={adapter}
       topBarStart={
-        <Button variant="secondary" onClick={() => navigate(-1)}>
-          Back to templates
+        <Button variant="secondary" className={styles.back} leftIcon={<ArrowLeft size={16} aria-hidden />} aria-label="Back to templates" title="Back to templates" onClick={() => navigate(-1)}>
+          <span className={styles.backLabel}>Back to templates</span>
         </Button>
       }
       topBarEnd={
         <>
-          {message ? <span role="alert">{message}</span> : null}
-          <Button onClick={() => void save()} disabled={saving}>
+          {message ? <span role="alert" className={styles.message} title={message}>{message}</span> : null}
+          <Button className={styles.save} onClick={() => void save()} disabled={saving}>
             {saving ? 'Saving…' : 'Save label'}
           </Button>
         </>

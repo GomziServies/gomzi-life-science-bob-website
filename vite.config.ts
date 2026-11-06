@@ -1,10 +1,14 @@
 import { fileURLToPath, URL } from 'node:url'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 
-const API_TARGET = process.env.VITE_API_PROXY ?? 'http://localhost:80' // fg-api (the Node server that now holds the editor backend)
+export default defineConfig(({ mode }) => {
+  // Read from the shell or from .env / .env.<mode>, so a machine without a local fg-api can point the proxy at a live one.
+  const env = { ...loadEnv(mode, process.cwd(), 'VITE_'), ...process.env }
+  const API_TARGET = env.VITE_API_PROXY ?? 'http://localhost:80' // fg-api (the Node server that now holds the editor backend)
+  const CRM_TARGET = env.VITE_CRM_PROXY ?? API_TARGET
 
-export default defineConfig({
+  return {
   plugins: [react()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   // Loaded with import() when a video is made: listed so the dev server bundles them at start instead of discovering them
@@ -19,7 +23,7 @@ export default defineConfig({
       // The company's files in the S3 bucket (label pictures), read through the dev server so they are same-origin
       '/aws-files': { target: 'https://files.fggroup.in', changeOrigin: true, secure: true, rewrite: (p) => p.replace(/^\/aws-files/, '') },
       // The shop's inquiry/order calls go to the CRM, which is the same fg-api unless VITE_CRM_PROXY says otherwise.
-      '/crm': { target: process.env.VITE_CRM_PROXY ?? API_TARGET, changeOrigin: true, rewrite: (p) => p.replace(/^\/crm/, '') },
+      '/crm': { target: CRM_TARGET, changeOrigin: true, rewrite: (p) => p.replace(/^\/crm/, '') },
       '/admin': { target: API_TARGET, changeOrigin: true },
       '/static': { target: API_TARGET, changeOrigin: true },
       // Real-time co-editing: fg-api upgrades the connection.
@@ -41,4 +45,5 @@ export default defineConfig({
       },
     },
   },
+  }
 })

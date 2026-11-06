@@ -3,7 +3,7 @@ import type { Product } from '../data/catalog';
 import type { GalleryBanner } from '../lib/api';
 import { LabelView } from './LabelView';
 import { defaultBagLabel, packsOf, useFirstJarLabel, type Pack } from './LabelParts';
-import { ProductJar, ownDesign } from './ProductJar';
+import { ownDesign } from './ProductJar';
 import type { Details } from '../lib/labelArt';
 import { notePicture, useLoading3d, useTick } from '../lib/preload3d';
 
@@ -12,8 +12,16 @@ const NAMES: Record<Pack, (p: Product) => string> = { jar: () => 'Jar', pouch: (
 /** Pictures of each pack, already taken, so a card that scrolls back into view shows them at once. */
 const shots = new Map<string, string>();
 // change this when the drawing of a pack changes (new caps, new models): older saved pictures are then dropped
-const SHOT_VERSION = 'v4-pack-labels';
-const shotKey = (p: Product, flavour: string, banner: GalleryBanner | null | undefined, details: Details, pack: Pack) => JSON.stringify([SHOT_VERSION, p.id, flavour, banner?.slug ?? '', details.brand, pack]);
+const SHOT_VERSION = 'v7-shared';
+/**
+ * The name a pack's picture is kept under. A pouch or sachet wearing one of the ready bag labels looks the same for every
+ * product (the label carries its own brand, nothing of the product is drawn on it), so that picture is drawn once and
+ * every product's card shows it, instead of the same pouch being drawn again for each of twenty products.
+ */
+const shotKey = (p: Product, flavour: string, banner: GalleryBanner | null | undefined, details: Details, pack: Pack) =>
+  pack !== 'jar' && banner?.ownLogo
+    ? JSON.stringify([SHOT_VERSION, 'bag', '', banner.slug, details.brand, pack])
+    : JSON.stringify([SHOT_VERSION, p.id, flavour, banner?.slug ?? '', details.brand, pack]);
 
 /** The finished pictures are also kept in the browser's own storage, so a product is drawn in 3D once, not again at every visit or reload. */
 const DB_NAME = 'gomzi-card-shots';
@@ -72,6 +80,9 @@ if (typeof window !== 'undefined') {
   );
 }
 const takeSlot = () => (builds < MAX_BUILDS && performance.now() - lastScroll > 200 ? (builds++, true) : false);
+/** Cards near the view that have no 3D picture yet. While there are any, no card draws its second or third pack: every card gets its first picture
+ * before any card gets its pouch and sachet (one card no longer keeps the drawing places for all three of its packs while the others wait). */
+const hungry = new Set<object>();
 const freeSlot = () => {
   builds = Math.max(0, builds - 1);
   waiting.forEach((wake) => wake());
@@ -79,7 +90,7 @@ const freeSlot = () => {
 
 /** A product card's picture: the product's 3D models (tub or jar, pouch, sachet) one after another every two seconds. Each pack is drawn in 3D once, in the
  * background, one at a time; the card then fades between the finished pictures, which costs nothing to show and cannot stutter. */
-export function Card3D({ product, flavour, details, banner, index = 99 }: { product: Product; flavour: string; details: Details; banner?: GalleryBanner | null; index?: number }) {
+export function Card3D({ product, flavour, details, banner, index = 99, onPick }: { product: Product; flavour: string; details: Details; banner?: GalleryBanner | null; index?: number; /** Told when the visitor picks a pack with the buttons. */ onPick?: (pack: Pack) => void }) {
   const host = useRef<HTMLDivElement>(null);
   const packs = packsOf(product);
   const [live, setLive] = useState(false);
@@ -122,7 +133,20 @@ export function Card3D({ product, flavour, details, banner, index = 99 }: { prod
   const active = warm && firstJar !== undefined && (live || (!done && index < 9)); // the top cards draw behind the loading screen; the others as they come within a screen or so of the view
   const key = (pack: Pack) => shotKey(product, flavour, bannerOf(pack), details, pack);
   const ready = packs.filter((p) => shots.has(key(p)));
-  const next = active ? packs.find((p) => !shots.has(key(p)) && !gaveUp.includes(p)) : undefined;
+  // this card still waits for its first picture (and has a pack it has not given up on)
+  const wantsFirst = active && ready.length === 0 && packs.some((p) => !gaveUp.includes(p));
+  const me = useRef({});
+  useEffect(() => {
+    if (!wantsFirst) return;
+    const id = me.current;
+    hungry.add(id);
+    return () => {
+      hungry.delete(id);
+      // the others may now draw their next packs
+      if (hungry.size === 0) waiting.forEach((w) => w());
+    };
+  }, [wantsFirst]);
+  const next = active && (ready.length === 0 || hungry.size === 0) ? packs.find((p) => !shots.has(key(p)) && !gaveUp.includes(p)) : undefined;
 
   // a card waits for one of the drawing places; it keeps it until its picture is taken (or 40 s have passed)
   useEffect(() => {
@@ -166,7 +190,10 @@ export function Card3D({ product, flavour, details, banner, index = 99 }: { prod
       {shown ? (
         ready.map((id) => <img key={id} className={`card3d-shot${id === shown ? ' on' : ready.indexOf(id) < order ? ' before' : ' after'}`} src={shots.get(key(id))} decoding="async" alt={id === shown ? product.name : ''} draggable={false} />)
       ) : (
-        <ProductJar className="jar-card" product={product} flavour={flavour} banner={banner?.thumb} />
+        // while the 3D picture is drawn: a soft shimmering pack shape, never a drawn stand-in for the product
+        <div className="card3d-wait" role="img" aria-label={`${product.name}: loading 3D view`}>
+          <span />
+        </div>
       )}
       {building && (
         <div className="card3d-build" aria-hidden>
@@ -179,6 +206,7 @@ export function Card3D({ product, flavour, details, banner, index = 99 }: { prod
             banner={bannerOf(building) ?? undefined}
             pack={building}
             autoTurn={false}
+            snapshotOnly
             onSnapshot={(url) => {
               const first = !packs.some((p) => shots.has(key(p)));
               shots.set(key(building), url);
@@ -197,7 +225,10 @@ export function Card3D({ product, flavour, details, banner, index = 99 }: { prod
               type="button"
               aria-pressed={id === shown}
               disabled={!shots.has(key(id))}
-              onClick={() => setHeldPack(id)}
+              onClick={() => {
+                setHeldPack(id);
+                onPick?.(id);
+              }}
             >
               {NAMES[id](product)}
             </button>

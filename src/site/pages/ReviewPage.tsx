@@ -3,8 +3,9 @@ import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { productById } from '../data/catalog';
 import { isTeamBanner, TEAM_NAME, useOrder } from '../state/order';
 import { submitInquiry } from '../lib/api';
+import { finishUploads, withUploads } from '../lib/bannerUploads';
 import { SentOverlay } from '../components/SentOverlay';
-import { ProductJar } from '../components/ProductJar';
+import { PackIcon } from '../components/PackIcon';
 import { Stepper } from '../components/Stepper';
 
 export function ReviewPage() {
@@ -24,7 +25,9 @@ export function ReviewPage() {
     setError('');
     try {
       const started = Date.now();
-      const { leadId: id, emailSent: emailed } = await submitInquiry(customer, cart, banners);
+      // a label saved moments ago may still be uploading its print files: they are waited for, so the inquiry carries them
+      const ready = withUploads(banners, await finishUploads());
+      const { leadId: id, emailSent: emailed } = await submitInquiry(customer, cart, ready);
       // the inquiry is in: the "sent" moment plays (it says whether the confirmation e-mail went), then the thank-you page opens
       setMailing(emailed ? 'sent' : 'later');
       setSent(true);
@@ -62,7 +65,7 @@ export function ReviewPage() {
               const banner = banners[l.productId];
               return (
                 <div className="prow review-row" key={l.productId}>
-                  <ProductJar className="jar-sm" product={p} flavour={l.flavour} brand={customer.brandName} />
+                  <PackIcon className="jar-sm" product={p} flavour={l.flavour} brand={customer.brandName} />
                   <div className="thumb wide">{isTeamBanner(banner) ? <span className="team-thumb">Made with<br />{TEAM_NAME}</span> : banner ? <img src={banner.thumbnail || banner.previewUrl} alt={`${p.name} label`} /> : null}</div>
                   <div className="grow">
                     <h3 style={{ margin: 0 }}>{p.name}</h3>

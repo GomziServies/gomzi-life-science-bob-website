@@ -11,6 +11,7 @@ import { ReviewPage } from './pages/ReviewPage';
 import { DonePage } from './pages/DonePage';
 import { BrochurePage } from './pages/BrochurePage';
 import { WhatsAppButton } from './components/WhatsAppButton';
+import { HelpButton } from './components/HelpButton';
 import { Seo } from './components/Seo';
 import { BackToTop } from './components/BackToTop';
 import { HomeSeo } from './components/HomeSeo';
@@ -60,6 +61,7 @@ export default function SiteApp() {
         </main>
         <Footer />
         <WhatsAppButton />
+        <HelpButton />
         <BackToTop />
       </div>
     </OrderProvider>

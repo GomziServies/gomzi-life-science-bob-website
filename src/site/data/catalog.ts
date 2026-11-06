@@ -5,6 +5,8 @@ export interface Product {
   id: string;
   /** Gallery category holding this product's saved templates; empty shows every template. */
   templateCategory: string;
+  /** A cup label from the template gallery (its slug) that the product's 3D cup wears until the customer saves their own (peanut butter). */
+  cupLabel?: string;
   /** The product's label size, width x height (shown on the card and in its details). */
   labelSize?: string;
   /** Ingredient details supplied as an image, shown in the product's details instead of the standard note. */
@@ -44,7 +46,7 @@ export const CATALOG: Product[] = [
   { id: 'pre', templateCategory: 'pre-workout', group: 'sports', name: 'Pre-Workout', sub: 'Fruit Punch · 250 g jar', unit: 'jar', flavours: ['Fruit Punch', 'Mix Fruit'], tag: 'ENERGY & FOCUS', weight: '250 G' },
   { id: 'eaa', templateCategory: 'bcaa-amino', group: 'sports', name: 'EAA', sub: 'Orange · 250 g jar', unit: 'jar', flavours: ['Orange'], tag: 'GAIN · RECOVER · REFUEL', weight: '250 G' },
   { id: 'fatburner', templateCategory: 'pre-workout', group: 'sports', name: 'Fat Burner', sub: 'Blueberry · 250 g jar', unit: 'jar', flavours: ['Blueberry'], tag: 'L-CARNITINE FORMULA', weight: '250 G' },
-  { id: 'peanut', templateCategory: '', group: 'food', name: 'Peanut Butter', sub: 'Smooth, crunchy & high-protein · jar', unit: 'jar', flavours: PEANUT_FLAVOURS, tag: 'PEANUT BUTTER' },
+  { id: 'peanut', templateCategory: 'peanut-butter', cupLabel: 'label-500-g-3c00c5', group: 'food', name: 'Peanut Butter', sub: 'Smooth, crunchy & high-protein · jar', unit: 'jar', flavours: PEANUT_FLAVOURS, tag: 'PEANUT BUTTER' },
   { id: 'tea', templateCategory: '', group: 'food', name: 'Instant Protein Spiced Milk Tea', sub: 'Zero added sugar · 14 g sachet', unit: 'sachet', flavours: ['Masala Chai'], tag: 'PROTEIN TEA', weight: '14 G' },
   { id: 'mocha', templateCategory: '', group: 'food', name: 'Instant Protein Mocha Coffee', sub: 'Zero added sugar · 14 g sachet', unit: 'sachet', flavours: ['Mocha'], tag: 'PROTEIN COFFEE', weight: '14 G' },
   { id: 'biotin', templateCategory: '', group: 'well', name: 'Biotin', sub: '60 capsules', unit: 'bottle', flavours: ['Standard'], tag: 'DIETARY SUPPLEMENT', weight: '60 CAPSULES' },

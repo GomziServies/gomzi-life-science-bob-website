@@ -1,0 +1,30 @@
+/* The label shop's buttons in the editor's top bar. On a narrow bar (the editor sets data-narrow on it) Back keeps only its arrow
+   and both buttons take less room, so they never run into the editor's own controls. */
+.back {
+  gap: 6px;
+}
+
+[data-narrow] .back {
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  gap: 0;
+}
+[data-narrow] .backLabel {
+  display: none;
+}
+[data-narrow] .save {
+  height: 2.25rem;
+  padding: 0 0.85rem;
+}
+
+.message {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+[data-narrow] .message {
+  max-width: 96px;
+}

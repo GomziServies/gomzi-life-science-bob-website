@@ -267,10 +267,11 @@ export function TopBar({ start, end, onTitle, onPresent }: TopBarProps) {
     { id: 'v2', separator: true },
     cmd('file.shortcuts'),
   ]
-  /** Phone widths: one menu with a heading per group, and Comments joins it so the bar keeps room for the title. */
+  /** Phone widths: one menu with a heading per group; Comments and the 3D mockup join it so the bar keeps room for the title and the actions. */
   const combinedItems: MenuItem[] = [
     ...endTools.map((p) => ({ id: `tool-${p.id}`, label: p.label, icon: p.icon, checked: openId === p.id || undefined, onSelect: () => toggle(p.id) })),
-    ...(endTools.length > 0 ? [{ id: 'c0', separator: true }] : []),
+    ...(readOnly ? [] : [{ id: 'mockup-3d', label: '3D view', icon: <Box size={16} aria-hidden="true" />, onSelect: () => setShowMockup3d(true) }]),
+    ...(endTools.length > 0 || !readOnly ? [{ id: 'c0', separator: true }] : []),
     { id: 'h-file', label: t.topbar.file, heading: true },
     ...fileItems,
     { id: 'c1', separator: true },
@@ -326,16 +327,16 @@ export function TopBar({ start, end, onTitle, onPresent }: TopBarProps) {
         {end ? <div className={styles.end}>{end}</div> : null}
         <ConvertToEditable />
         <FixFromLibrary />
-        {!readOnly && (
-          <Tooltip label="3D Mockup">
+        {!readOnly && !narrow && (
+          <Tooltip label="See your design on the 3D pack">
             <button
               type="button"
-              className={`${ed.btn} ${ed.iconOnly} ${ed.ghost}`}
+              className={`${ed.btn} ${ed.ghost} ${styles.mockup}`}
               onClick={() => setShowMockup3d(true)}
-              aria-label="3D Mockup"
               data-testid="ed-3d-mockup"
             >
-              <Box size={18} aria-hidden="true" />
+              <Box size={17} aria-hidden="true" />
+              <span>3D view</span>
             </button>
           </Tooltip>
         )}

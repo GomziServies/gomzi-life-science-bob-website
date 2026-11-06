@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { flattenPages, useTemplateCategories, useTemplatesList } from '@/lib/api/hooks'
 import { useDebouncedValue } from '@/lib/useDebouncedValue'
+import { TEMPLATE_COLLECTIONS, categoryFilter, type TemplateCollection } from '@/lib/templateCollections'
 import { Button, EmptyState, Input, SegmentedControl, Skeleton } from '@/ui'
 import type { TemplateQuery, TemplateSummary } from '@/types/api'
 import { TemplateCard } from './TemplateCard'
@@ -19,6 +20,19 @@ const ORIENTATIONS: Array<{ value: Orientation; label: string }> = [
 
 function isOrientation(value: string | null): value is NonNullable<TemplateQuery['orientation']> {
   return value === 'landscape' || value === 'portrait' || value === 'square'
+}
+
+/** A chip for a template collection, with the number of templates in it (asked of the server with a one-row page). */
+function CollectionChip({ collection, pressed, onToggle }: { collection: TemplateCollection; pressed: boolean; onToggle: () => void }) {
+  const count = useTemplatesList({ ...categoryFilter(collection.slug), page_size: 1 }).data?.pages[0]?.count
+  // like the server's categories, an empty collection is not offered (unless it is the one selected)
+  if (count === 0 && !pressed) return null
+  return (
+    <button type="button" className={styles.chip} aria-pressed={pressed} onClick={onToggle}>
+      {collection.name}
+      {count !== undefined ? <span className={styles.count}>{count}</span> : null}
+    </button>
+  )
 }
 
 /** Category chips, search, orientation filter and a masonry grid with load-more. Filters live in the URL. */
@@ -45,8 +59,9 @@ export function TemplatesBrowser({ templateTo }: { /** Where a card leads; by de
   }, [debounced, urlQuery, setParams])
 
   const categories = useTemplateCategories()
+  // a collection (Peanut Butter) is asked of the server as its category plus its preset
   const query: TemplateQuery = useMemo(
-    () => ({ category: category || undefined, q: urlQuery || undefined, orientation: orientation === 'all' ? undefined : orientation }),
+    () => ({ ...categoryFilter(category), q: urlQuery || undefined, orientation: orientation === 'all' ? undefined : orientation }),
     [category, urlQuery, orientation],
   )
   const list = useTemplatesList(query)
@@ -92,6 +107,9 @@ export function TemplatesBrowser({ templateTo }: { /** Where a card leads; by de
         <button type="button" className={styles.chip} aria-pressed={!category} onClick={() => setParam('category', null)}>
           All
         </button>
+        {TEMPLATE_COLLECTIONS.map((c) => (
+          <CollectionChip key={c.slug} collection={c} pressed={category === c.slug} onToggle={() => setParam('category', category === c.slug ? null : c.slug)} />
+        ))}
         {categories.isPending
           ? Array.from({ length: 5 }, (_, index) => <Skeleton key={index} width={84} height={34} radius="var(--radius-full)" />)
           : (categories.data ?? [])

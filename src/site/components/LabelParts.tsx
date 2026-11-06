@@ -3,6 +3,7 @@ import type { Product } from '../data/catalog';
 import { readLogo } from '../lib/logo';
 import type { LogoShift } from './LabelView';
 import { listGalleryBanners, type GalleryBanner } from '../lib/api';
+import { cupGalleryLabel } from '../lib/cupLabel';
 import { POUCH_LABELS, SACHET_LABELS } from '../data/bagLabels';
 
 export type Pack = 'jar' | 'pouch' | 'sachet';
@@ -90,6 +91,8 @@ export function TeamChoice({ picked, onPick, className }: { picked: boolean; onP
  * otherwise the ones our team saved in the template gallery. */
 export function labelsFor(product: Product, pack: Pack): Promise<GalleryBanner[]> {
   if (pack !== 'jar' && packsOf(product).length === 3) return Promise.resolve(pack === 'pouch' ? POUCH_LABELS : SACHET_LABELS);
+  // a cup product (peanut butter) offers its cup label, laid flat for the cup (its gallery's print layouts cannot be wrapped as they are)
+  if (product.cupLabel) return cupGalleryLabel(product.cupLabel).then((label) => (label ? [label] : []));
   return listGalleryBanners(product.templateCategory);
 }
 
@@ -98,13 +101,13 @@ export const defaultBagLabel = (product: Product, pack: Pack): GalleryBanner | n
 const firstJar = new Map<string, GalleryBanner | null>();
 /** The first of our gallery labels for a product's jar (loaded once per kind of product). */
 export function useFirstJarLabel(product: Product): GalleryBanner | null | undefined {
-  const key = product.templateCategory;
+  // a product with a cup label (peanut butter) wears that label, its curved wrap laid flat for the cup
+  const key = product.cupLabel ? `cup:${product.cupLabel}` : product.templateCategory;
   const [label, setLabel] = useState<GalleryBanner | null | undefined>(() => firstJar.get(key));
   useEffect(() => {
     if (firstJar.has(key)) return setLabel(firstJar.get(key));
     let live = true;
-    listGalleryBanners(key)
-      .then((list) => list[0] ?? null)
+    (product.cupLabel ? cupGalleryLabel(product.cupLabel) : listGalleryBanners(key).then((list) => list[0] ?? null))
       .catch(() => null)
       .then((first) => {
         firstJar.set(key, first);

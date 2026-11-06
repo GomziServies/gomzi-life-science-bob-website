@@ -2,7 +2,8 @@ import { useEffect, useLayoutEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { CATALOG, GROUPS, type GroupId, type Product } from '../data/catalog';
 import { FAQ, MADE_TO_ORDER, PACK_SIZES } from '../data/content';
-import { packText } from '../components/LabelParts';
+import { packText, type Pack } from '../components/LabelParts';
+import { editsSaved, labelEditPath } from '../lib/labelLinks';
 import { isTeamBanner, teamBanner, useOrder } from '../state/order';
 import { WHATSAPP } from '../lib/config';
 import { defaultQty } from '../lib/rules';
@@ -44,6 +45,8 @@ export function HomePage({ view = 'home' }: { view?: 'home' | 'products' | 'prod
   const [tab, setTab] = useState<Tab>(collection?.mto ? 'mto' : 'all');
   const [picked, setPicked] = useState<Record<string, string>>({});
   const [packs, setPacks] = useState<Record<string, number>>({});
+  // the pack (jar, pouch, sachet) picked on each product card: "Edit label" opens that pack's label
+  const [cardPack, setCardPack] = useState<Record<string, Pack>>({});
   const { productId } = useParams();
   // on a product's own page, the product being shown
   const detail = view === 'product' ? CATALOG.find((p) => p.id === productId && !p.hidden) : undefined;
@@ -233,7 +236,7 @@ export function HomePage({ view = 'home' }: { view?: 'home' | 'products' | 'prod
                   return (
                     <article className={`pcard${line ? ' picked' : ''}`} key={p.id} style={{ ['--tint' as string]: tintOf(p.id), borderColor: line ? undefined : CARD_BORDER }}>
                       <div className="pcard-art" style={{ ['--tint' as string]: tintOf(p.id), background: CARD_BG, borderBottom: `1.5px solid ${CARD_BORDER}` }}>
-                        <Card3D product={p} flavour={flavour} details={labelDetails} banner={applied} index={i} />
+                        <Card3D product={p} flavour={flavour} details={labelDetails} banner={applied} index={i} onPick={(pack) => setCardPack((s) => ({ ...s, [p.id]: pack }))} />
                         {line && <span className="picked-badge">Added</span>}
                         {p.comingSoon && <span className="soon-badge">Coming soon</span>}
                         <button type="button" className="eye" aria-label={`View ${p.name} details and all flavours`} title="View details" onClick={() => nav(`/products/${p.id}`)}>
@@ -247,15 +250,23 @@ export function HomePage({ view = 'home' }: { view?: 'home' | 'products' | 'prod
                         <span className="sizes">{p.unit === 'kg' ? PACK_SIZES.map((x) => x.label).join(' · ') : (p.weight ?? '').toLowerCase()}</span>
                         {p.group !== 'well' && <span className="packs">{packText(p)}</span>}
                         {p.labelSize && <span className="label-size">Label size: {p.labelSize}</span>}
-                        <div className="pcard-foot">
+                        <div className={`pcard-foot${p.comingSoon ? '' : ' pcard-foot-two'}`}>
                           {p.comingSoon ? (
                             <button className="btn btn-ghost btn-sm" disabled>Coming soon</button>
-                          ) : line ? (
-                            <button className="btn btn-ghost btn-sm" onClick={() => removeFromCart(p.id)}>Remove</button>
                           ) : (
-                            <button className="btn btn-lime btn-sm" onClick={() => addToCart({ productId: p.id, flavour, quantity: defaultQty(p, cart), packKg: 1 })}>
-                              Add to Cart (Inquiry)
-                            </button>
+                            <>
+                              {line ? (
+                                <button className="btn btn-ghost btn-sm" onClick={() => removeFromCart(p.id)}>Remove</button>
+                              ) : (
+                                <button className="btn btn-outline btn-sm" onClick={() => addToCart({ productId: p.id, flavour, quantity: defaultQty(p, cart), packKg: 1 })}>
+                                  Add to Cart (Inquiry)
+                                </button>
+                              )}
+                              {/* the label studio puts the product into the inquiry if it is not there yet */}
+                              <Link className="btn btn-lime btn-sm" to={labelEditPath(p.id, cardPack[p.id], undefined, editsSaved(banners[p.id], cardPack[p.id]))}>
+                                Edit label
+                              </Link>
+                            </>
                           )}
                         </div>
                         {line && <span className="incart">✓ Added to cart</span>}

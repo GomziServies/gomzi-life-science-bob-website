@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Badge, Thumbnail } from '@/ui'
 import type { TemplateSummary } from '@/types/api'
 import { resolveMediaUrl } from '@/lib/api/client'
+import { collectionOf } from '@/lib/templateCollections'
 import styles from './TemplateCard.module.css'
 
 /** `frame` gives every card the same thumbnail box (the template sits inside it), for an even row; without it the card takes the template's own shape. */
@@ -27,7 +28,7 @@ export function TemplateCard({ template, to, frame }: { template: TemplateSummar
       <span className={styles.meta}>
         <span className={styles.title}>{template.title}</span>
         <span className={styles.sub}>
-          {template.category ? <Badge>{template.category.name}</Badge> : null}
+          {template.category ? <Badge>{collectionOf(template)?.name ?? template.category.name}</Badge> : null}
           <span className={styles.size}>
             {template.width} × {template.height}
           </span>

@@ -76,10 +76,16 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
 
   const narrow = viewport.width > 0 && viewport.width < 600
   const metrics = useMemo(() => metricsFor(doc.pages.length, narrow), [doc.pages.length, narrow])
-  const layout = useMemo(
-    () => computeStack(doc.pages.map((p) => ({ id: p.id, ...pageSize(doc, p) })), zoom, metrics),
-    [doc, zoom, metrics],
-  )
+  // A design shorter than the workspace (a wide label on a phone, a small card on a big screen) sits in the middle of it,
+  // not stuck to the top: the spare height is shared above and below.
+  const layout = useMemo(() => {
+    const pages = doc.pages.map((p) => ({ id: p.id, ...pageSize(doc, p) }))
+    const base = computeStack(pages, zoom, metrics)
+    const spare = viewport.height - base.contentHeight
+    return spare > 1 ? computeStack(pages, zoom, { ...metrics, padding: metrics.padding + Math.floor(spare / 2) }) : base
+  }, [doc, zoom, metrics, viewport.height])
+  /** The space above the first page (the stack's padding, plus any centring). */
+  const padTop = layout.slots[0]?.top ?? metrics.padding
   /** Scrolls caused by commands (add page, go to page) must not re-activate other pages on the way. */
   const quietUntil = useRef(0)
   const layoutRef = useLatest(layout)
@@ -375,11 +381,17 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
         scroller.classList.remove(styles.grabbing)
       }
     }
+    // On a touch screen a two-finger gesture is the editor's pinch: the browser must not take it over as a scroll (it would cancel the pointers mid-pinch).
+    const touchMove = (e: TouchEvent): void => {
+      if (e.touches.length >= 2 && e.cancelable) e.preventDefault()
+    }
     scroller.addEventListener('pointerdown', down, true)
     scroller.addEventListener('pointermove', move)
     scroller.addEventListener('pointerup', up)
     scroller.addEventListener('pointercancel', up)
+    scroller.addEventListener('touchmove', touchMove, { passive: false })
     return () => {
+      scroller.removeEventListener('touchmove', touchMove)
       scroller.removeEventListener('pointerdown', down, true)
       scroller.removeEventListener('pointermove', move)
       scroller.removeEventListener('pointerup', up)
@@ -474,7 +486,7 @@ export function Workspace({ stripOpen, onToggleStrip }: WorkspaceProps) {
           if (e.target === e.currentTarget) e.preventDefault()
         }}
       >
-        <div className={styles.content} data-workspace-bg style={{ minWidth: `max(100%, ${layout.contentWidth}px)`, paddingTop: metrics.padding, paddingBottom: metrics.padding }}>
+        <div className={styles.content} data-workspace-bg style={{ minWidth: `max(100%, ${layout.contentWidth}px)`, paddingTop: padTop, paddingBottom: padTop }}>
           {doc.pages.map((page, index) => {
             const slot = layout.slots[index]
             return (
